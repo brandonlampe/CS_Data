@@ -1,5 +1,5 @@
 # Repository for Crushed Salt Data
-**Grand No: 456417**
+**Grant No: 456417**
 
 This is a work in progress!
 
