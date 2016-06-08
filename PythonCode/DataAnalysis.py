@@ -1,17 +1,26 @@
 import numpy as np
 import sys
+import os
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.ticker import FuncFormatter
-REPO_DIR = '/Users/Lampe/GrantNo456417/CurrentTesting/CrushedSaltRepo'
-sys.path.append(REPO_DIR + '/PythonCode')
+from scipy import interpolate
+from scipy import optimize
+from scipy import linalg
+# relative path to module
+sys.path.append(sys.path[0])
 import DataAnalysisFunc as daf
+REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
+
 ##################################
 # CHOOSE TEST
 ##################################
 PLOT = 1
-SAVEFIG = 1
+SAVEFIG = 0
 SAVECSV = 0
+
+DUR_START = 0.0  # START PLOTTING
+DUR_END = 2.0 # END PLOTTING
 
 # TESTNAME = 'UNM_WP_HY_90_02'
 # TESTNAME = 'UNM_WP_HY_90_03'
@@ -43,7 +52,7 @@ print("File Path: " + IMPORT_FNAME)
 IMPORT_ARR = np.genfromtxt(fname=IMPORT_FNAME, delimiter=',', skiprows=1,
                            usecols=USECOLS)
 
-WINDOWSIZE = 20  # NUMBER OF POINTS INCLUDED IN AVERAGING WINDOW
+WINDOWSIZE = 2  # NUMBER OF POINTS INCLUDED IN AVERAGING WINDOW
 TRIM = int(WINDOWSIZE / 2.0)  # NUMBER OF POINTS TO TRIME FROM FRONT AND BACK
 DATETIME = daf.xldate_to_datetime(IMPORT_ARR[TRIM:-TRIM, COL_TIME])
 DURATION_DAY = daf.duration(IMPORT_ARR[TRIM:-TRIM, COL_TIME])
@@ -74,12 +83,64 @@ PTER = PCON - PPOR  # Terzahi pressure
 PSOL = (PCON - PPOR * (1 - FDEN)) / FDEN
 
 
+IDX_MAX = daf.find_nearest(DURATION_DAY, DUR_END)
+IDX_MIN = daf.find_nearest(DURATION_DAY, DUR_START)
+
+
+def objective_func(parm, xval, yval):
+    """ calculates the function to be minimized, the residual"""
+    # a, b, c, d, m = parm
+    # error = yval - d + (a - d) / (1 + (xval / c)**b)**m
+    a, k, b, nu, q, c = parm
+    error_vec = yval - (a + (k - a) / (c + q * np.exp(-b * xval))**(1 / nu))
+    error_norm = linalg.norm(error_vec)
+    return error_norm
+
+
+def fit_eval(xval, parm):
+    # a = parm[0]
+    # b = parm[1]
+    # c = parm[2]
+    # d = parm[3]
+    # m = parm[4]
+    # fit = d + (a - d) / (1 + (xval / c)**b)**m
+
+    a = parm[0]
+    k = parm[1]
+    b = parm[2]
+    nu = parm[3]
+    q = parm[4]
+    c = parm[5]
+    # function information found out:
+    # https://en.wikipedia.org/wiki/Generalised_logistic_function
+    fit = a + (k - a) / (c + q * np.exp(-b * xval))**(1 / nu)
+    return fit
+
+# parm =[A   , K   , B  , nu , Q    , C  ]
+PARM0 = [0.65, 0.95, 6.0, 0.5, 0.116, 5.0]  # initial parameter guess
+BNDS = ((0.1, 1.0), (0.5, 1.0), (0.1, 100), (0.01, 100), (0.01, 100),
+        (0.01, 100))
+ARGS = (DURATION_DAY[IDX_MIN:IDX_MAX], FDEN[IDX_MIN:IDX_MAX])
+# days = np.linspace(0, 0.1, 100)
+# print(test)
+# print(DURATION_DAY)
+results = optimize.minimize(objective_func, PARM0,
+                            args=ARGS,
+                            method='L-BFGS-B',
+                            bounds=BNDS,
+                            options={'disp': False})
+
+print(results)
+PARM = results.x
+test = fit_eval(DURATION_DAY, PARM)
+##################################
+# PLOTTING/EXPORTING BELOW
+##################################
 FS = 16  # FONT SIZE FOR PLOTTING
 NUM_SUBPLOT = 3
 FIG1, AXARR = plt.subplots(NUM_SUBPLOT, figsize=(12, 10), sharex=True)
 AXARR[0].set_title("Test: " + FOLDER_DIR,
                    fontsize=18)
-
 ##################################
 # EXACT VOLUME STRAIN AND FRACTIONAL DENSITY RELATION
 ##################################
@@ -106,9 +167,11 @@ AXARR[0].set_title("Test: " + FOLDER_DIR,
 # AXARR[0].tick_params(labelsize=FS, pad=10)
 #################################
 # APPROXIMATE VOLUME STRAIN AND FRACTIONAL DENSITY
-#################################
+# #################################
+
+
 AXARR[0].plot(DURATION_DAY, FDEN, 'b-', lw=3)
-# AXARR[0].plot(DURATION_DAY, FDEN_NOAVG, 'r-', lw=3)
+AXARR[0].plot(DURATION_DAY, test, 'r--', lw=3)
 AXARR[0].grid(True)
 AXARR[0].set_ylabel("Fractional Density", fontsize=FS)
 AXARR[0].set_ylim(ymin=FDEN0)
@@ -127,19 +190,19 @@ AXARR[0].tick_params(labelsize=FS)
 AXARR[0].tick_params(labelsize=FS, pad=10)
 #################################
 
-print()
-
-lbl_fden = ["Strain Rate", "Sample Interval"]
+lbl_strnrate = ["Strain Rate"]
+lbl_interval = ["Sample Interval"]
 AXARR[1].semilogy(DURATION_DAY, VSTRN_RATE, 'b-', lw=3)
 # AXARR[1].semilogy(DURATION_DAYNOAVG[1:], VSTRN_RATENOAVG, 'r-', lw=3)
 AXARR[1].grid(True)
 AXARR[1].set_ylabel(r'Strain Rate (sec$^{-1}$)', fontsize=FS)
-AXARR[1].legend(lbl_fden, frameon=1, framealpha=1, loc=0, fontsize=FS)
+AXARR[1].legend(lbl_strnrate, frameon=1, framealpha=1, loc=1, fontsize=FS)
 
 AX2B = AXARR[1].twinx()
-AX2B.semilogy(DURATION_DAY, DELTA_SEC, 'r-', lw=3)
+AX2B.semilogy(DURATION_DAY, DELTA_SEC, 'r--', lw=3)
 AX2B.set_ylabel("Sample Interval (sec)", fontsize=FS)
 AX2B.tick_params(labelsize=FS)
+AX2B.legend(lbl_interval, frameon=1, framealpha=1, loc=4, fontsize=FS)
 
 AXARR[1].tick_params(labelsize=FS)
 AXARR[1].tick_params(labelsize=FS, pad=10)
@@ -154,16 +217,17 @@ AXARR[2].yaxis.set_major_formatter(FuncFormatter(lambda x, p: format(int(x),
                                                                      ',')))
 AXARR[2].grid(True)
 AXARR[2].set_ylabel("Stress", fontsize=FS)
-AXARR[2].legend(lbl_strs, frameon=1, framealpha=1, loc=0, fontsize=FS)
+AXARR[2].legend(lbl_strs, frameon=1, framealpha=.85, loc=4, fontsize=FS)
 AXARR[2].tick_params(labelsize=FS)
 AXARR[2].tick_params(labelsize=FS, pad=10)
 #################################
 LOWEST_CHART = NUM_SUBPLOT - 1
 AXARR[LOWEST_CHART].set_xlabel("Test Duration [days]", fontsize=FS,
                                labelpad=10)
-majorFormatter = FormatStrFormatter('%2.1f')
+majorFormatter = FormatStrFormatter('%2.2f')
 AXARR[LOWEST_CHART].xaxis.set_major_formatter(majorFormatter)
 AXARR[LOWEST_CHART].tick_params(labelsize=FS, pad=10)
+AXARR[LOWEST_CHART].set_xlim(DUR_START, DUR_END)
 
 # FIG1.tight_layout()
 FIG1_NAME = "PLOTS_" + TESTNAME + '.pdf'

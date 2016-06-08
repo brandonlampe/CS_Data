@@ -3,6 +3,10 @@
 
     function list:
     1) xldate_to_datetime: converts Excel date (numeric) to Python datetime
+    2) duration:  calculates duration in days using Excel date as input
+    3) col_lbl: provides labels for columns from Excel data
+    4) moving_avg:  calculates the moving average over
+    5) find_nearest:  finds the index of the nearest value in an array
 """
 
 import numpy as np
@@ -70,5 +74,12 @@ def moving_avg(interval, window_size):
     window = np.ones(int(window_size)) / float(window_size)
     avg = np.convolve(interval, window, 'same')
     trim = int(window_size / 2)
-    return avg[trim:-trim]
+    return avg[trim:-trim]  # trims the ends
+    # return avg  # no trim at ends
+
+
+def find_nearest(array, value):
+    """ identifies the index in the array for the nearest value"""
+    idx = (np.abs(array - value)).argmin()
+    return idx
 
