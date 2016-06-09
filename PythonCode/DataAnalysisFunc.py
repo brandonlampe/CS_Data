@@ -11,7 +11,7 @@
 
 import numpy as np
 import datetime
-
+import lmfit
 
 def xldate_to_datetime(xldate):
     """ function converts Excel date (numeric) to an actual "date time"
@@ -83,3 +83,41 @@ def find_nearest(array, value):
     idx = (np.abs(array - value)).argmin()
     return idx
 
+
+def fit_fden(fden_interp, dur_day_interp):
+    # fit the fractional density using the LMFIT package, combine 2 models
+    # ref: https://lmfit.github.io/lmfit-py/builtin_models.html
+    # class StepModel, logistic = f(x; A, mu, sigma) = A{1-1/(1+exp(alpha))}
+    #                   where: alpha = (x - mu)/sigma
+    # class LinearModel = f(x; m,b)= mx + b
+    ASYM_MOD = lmfit.models.ExpressionModel('(ainf + (azero-ainf)/(1+(x/c)**b)**g) + (slope * x) + (aexp * x ** kexp)')
+    # STEP_MOD = lmfit.models.StepModel(form='logistic', prefix='step_')
+    # LINE_MOD = lmfit.models.LinearModel(prefix='line_')
+    # POWR_MOD = lmfit.models.ExponentialModel(prefix='powr_')
+
+    # define initial guess values for parameters for each model
+    PARMS = ASYM_MOD.make_params(ainf=0.87, azero=0.74, c=0.005,
+                                 b=27.0, g=0.05,
+                                 slope=0.001, aexp=0.05, kexp=0.1)
+    # PARMS += LINE_MOD.guess(FDEN_INTERP, x=DUR_DAY_INTERP)
+    # PARMS = LINE_MOD.make_params(intercept=FDEN_INTERP.min(), slope=0)
+    # PARMS += POWR_MOD.make_params(amplitude=0.25, exponent=0.1)
+    # PARMS += STEP_MOD.guess(FDEN_INTERP, x=DUR_DAY_INTERP, center=0.01)
+
+    MOD = ASYM_MOD
+    # MOD = STEP_MOD + LINE_MOD + POWR_MOD  # COMBINE THE TWO MODELS
+    # MOD = STEP_MOD + POWR_MOD  # COMBINE THE TWO MODELS
+    # MOD = STEP_MOD  # SINGLE MODEL
+    out = MOD.fit(fden_interp, PARMS, x=dur_day_interp)
+    return out
+
+
+def model_fden(xday, parm):
+    """
+    xday = duration time in days
+    parm = parameter set for fit
+    """
+    slope, c, b, g, kexp, aexp, azero, ainf = parm
+    out = ainf + (azero - ainf) / (1 + (xday / c)**b)**g +\
+        slope * xday + aexp * xday**kexp
+    return out
