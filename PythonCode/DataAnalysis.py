@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import os
+import datetime
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.ticker import FuncFormatter
@@ -17,15 +18,20 @@ REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 ##################################
 # CHOOSE ANALYSIS OPTIONS
 ##################################
-PLOT = 0
-SAVEFIG = 0
+PLOT = 1
+SAVEFIG = 1
 SAVECSV = 1
-PLOT_RESID = 1
-PLOT_CSMOD = 1  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
-PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/UNM_WP_HY_175_09_OUT.csv'
+PLOT_RESID = 0
+PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
+STAGE_ID = '_Stage01'  # IF TEST CONSISTS OF MULTIPLE STAGES
 
-DUR_START = 0.006  # START PLOTTING
-DUR_END = 0.95  # END PLOTTING
+# IF RESULTS FROM CS MODEL ARE TO BE PLOTTED ALSO, DEFINE PATH TO DATA
+PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
+             'UNM_WP_HY_175_09_OUT' + '.csv'
+
+
+DUR_START = 0.0  # START PLOTTING (days)
+DUR_END = 0.96  # END PLOTTING (days)
 INTERP_INC = 10  # SECONDS, SIZE OF INTERPOLATION INCREMENT
 
 # TESTNAME = 'UNM_WP_HY_90_02'
@@ -48,11 +54,9 @@ COL_PCON = 2
 COL_PPOR = 14
 COL_FDEN = 31
 
-# print(daf.col_lbl(31))
 RHOIS = 2160.0  # ASSUMED IN-SITU DENSITY (KG/M3), FOR STRAIN MEASURE
 USECOLS = (np.arange(0, 32, 1))
 IMPORT_FNAME = REPO_DIR + '/' + FOLDER_DIR + '/' + TEST_NAME + '.csv'
-# print("Imported Test: " + TESTNAME)
 print("File Path: " + IMPORT_FNAME)
 
 # Import .csv file and save it as an array: IMPORT_ARR
@@ -60,6 +64,10 @@ IMPORT_ARR = np.genfromtxt(fname=IMPORT_FNAME, delimiter=',', skip_header=1,
                            usecols=USECOLS, dtype=float)
 
 # define vectors containing all rows a selected clumns, noted with "ALL"
+TIME_ALL = daf.xldate_to_datetime(IMPORT_ARR[:, COL_TIME])
+TIME_SHIFT = datetime.timedelta(days=DUR_START)
+TIME_START = TIME_ALL[0] + TIME_SHIFT
+print("Time of analysis start: " + TIME_START.strftime('%Y/%m/%d %H:%M:%S'))
 DUR_DAY_ALL = daf.duration(IMPORT_ARR[:, COL_TIME])  # ALL DURATION DATA
 FDEN_ALL = IMPORT_ARR[:, COL_FDEN]  # NO TIME AVERAGEING
 PCON_ALL = IMPORT_ARR[:, COL_PCON] / 145.0
@@ -166,6 +174,19 @@ VSTRN_RATE_INTERP = DELTA_VSTRN_INTERP / DELTA_SEC_INTERP
 VSTRN_RATE_FIT_INTERP = DELTA_VSTRN_FIT_INTERP / DELTA_SEC_INTERP
 PTER_INTERP = PCON_INTERP - PPOR_INTERP  # Terzahi pressure
 PSOL_INTERP = (PCON_INTERP - PPOR_INTERP * (1 - FDEN_INTERP)) / FDEN_INTERP
+
+OUT_INTERP_DATA = np.zeros((len(DUR_SEC_INTERP), 11))
+OUT_INTERP_DATA[:, 0] = DUR_SEC_INTERP
+OUT_INTERP_DATA[:, 1] = DUR_DAY_INTERP
+OUT_INTERP_DATA[:, 2] = FDEN_INTERP
+OUT_INTERP_DATA[:, 3] = FDEN_FIT_INTERP
+OUT_INTERP_DATA[:, 4] = VSTRN_FIT_INTERP
+OUT_INTERP_DATA[:, 5] = VSTRN_RATE_FIT_INTERP
+OUT_INTERP_DATA[:, 6] = PCON_INTERP
+OUT_INTERP_DATA[:, 7] = PPOR_INTERP
+OUT_INTERP_DATA[:, 8] = PTER_INTERP
+OUT_INTERP_DATA[:, 9] = PSOL_INTERP
+OUT_INTERP_DATA[:, 10] = TEMP_INTERP
 
 ##################################
 # PLOTTING/EXPORTING BELOW
@@ -291,10 +312,18 @@ AXARR[1].tick_params(labelsize=FS, pad=10)
 lbl_strs = ["Confining", "Pore", "Terzaghi",
             "Solid"]
 lbl_temp = ["Temperature"]
-AXARR[2].plot(DUR_DAY_INTERP, PCON_INTERP, 'b-', lw=3)
-AXARR[2].plot(DUR_DAY_INTERP, PPOR_INTERP, 'g-', lw=3)
-AXARR[2].plot(DUR_DAY_INTERP, PTER_INTERP, 'r-', lw=3)
-AXARR[2].plot(DUR_DAY_INTERP, PSOL_INTERP, 'c-', lw=3)
+AXARR[2].plot(DUR_DAY_INTERP, PCON_INTERP, linestyle='-',
+              linewidth=1, marker='.', markersize=4,
+              color='b', alpha=1)
+AXARR[2].plot(DUR_DAY_INTERP, PPOR_INTERP, linestyle='-',
+              linewidth=1, marker='.', markersize=4,
+              color='g', alpha=1)
+AXARR[2].plot(DUR_DAY_INTERP, PTER_INTERP, linestyle='-',
+              linewidth=1, marker='.', markersize=4,
+              color='r', alpha=1)
+AXARR[2].plot(DUR_DAY_INTERP, PSOL_INTERP, linestyle='-',
+              linewidth=1, marker='.', markersize=4,
+              color='c', alpha=1)
 AXARR[2].yaxis.set_major_formatter(FuncFormatter(lambda x, p: format(int(x),
                                                                      ',')))
 AXARR[2].grid(True)
@@ -322,8 +351,9 @@ AXARR[LOWEST_CHART].tick_params(labelsize=FS, pad=10)
 # AXARR[LOWEST_CHART].set_xlim(DUR_START, DUR_END)
 
 # FIG1.tight_layout()
-FIG1_NAME = ("PLOTS_" + TEST_NAME + "_" + str(DUR_START) + "-" +
-             str(DUR_END) + '.pdf')
+# FIG1_NAME = ("PLOTS_" + TEST_NAME + "_" + str(DUR_START) + "-" +
+#              str(DUR_END) + '.pdf')
+FIG1_NAME = TEST_NAME + STAGE_ID + "_PLOTS.pdf"
 PATH = REPO_DIR + '/' + FOLDER_DIR + '/'
 #################################
 if SAVEFIG != 0:
@@ -333,17 +363,18 @@ if PLOT != 0:
     plt.show()
 if SAVECSV != 0:
     # SAVE RESULTS TO .CSV FILE
-    OUT_FILENAME = PATH + TEST_NAME + '_OUT.csv'
-    OUT_FILENAME_REPORT = PATH + TEST_NAME + '_FITREPORT.csv'
+    OUT_FILENAME = PATH + TEST_NAME + STAGE_ID + '_OUT.csv'
+    OUT_FILENAME_REPORT = PATH + TEST_NAME + STAGE_ID + '_FITREPORT.csv'
 
-    COMMENTS = """RESULTS FROM, XX, RUN BY, XX, ON, XX
-               """
-    HEADER = ('INC,TIME_SEC,ASTRNRATE,LSTRNRATE,ZETARATE,ASTRN,LSTRN,ZETA,\
-                VSTRN,FDEN,RHO,MDCREEP,SPCREEP,SSCREEP,FTRN,MSTRS,\
-                DSTRS,SEQ,SEQF,F2A,F2L,ASTRS,LSTRS,TEMPC,DSZ,WATER')
-    # np.savetxt(OUT_FILENAME, OUT, fmt='%.8e', delimiter=',', newline='\n',
-    #            header=HEADER, comments=COMMENTS)
-    # print("Saved Data As: " + OUT_FILENAME)
+    # HEADER = "Interpolated Data For Test: " + str(TEST_NAME) + "/n"
+    HEADER = "Seconds, Days, Fractional Density, Fit to Fractional Density," +\
+             "Fit to Volume Strain,Fit to Volume Strain Rate (1/sec)," +\
+             "Confining Pressure (MPa), Pore Pressure (MPa)," +\
+             "Terzaghi Pressure (MPa), Solid Pressure (MPa)," +\
+             "Temperature (C))"
+    np.savetxt(OUT_FILENAME, OUT_INTERP_DATA, fmt='%.6e', delimiter=',',
+               newline='\n', header=str(HEADER), comments="")
+    print("Saved Data As: " + OUT_FILENAME)
 
     OUT = open(OUT_FILENAME_REPORT, 'w')
     OUT.write(FIT_REPORT)
