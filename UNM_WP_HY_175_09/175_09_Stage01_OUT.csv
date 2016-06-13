@@ -1,4 +1,6 @@
-Seconds, Days, Fractional Density, Fit to Fractional Density,Fit to Volume Strain,Fit to Volume Strain Rate (1/sec),Confining Pressure (MPa), Pore Pressure (MPa),Terzaghi Pressure (MPa), Solid Pressure (MPa),Temperature (C))
+Analysis by Brandon Lampe, performed on: 2016/06/13 11:57:28
+Experimental results below begin at: 2016/04/08 09:25:51
+Duration (sec),Duration (day),Fractional Density,Fit to Fractional Density,Fit to Volume Strain,Fit to Volume Strain Rate (1/sec),Confining Pressure (MPa),Pore Pressure (MPa),Terzaghi Pressure (MPa),Solid Pressure (MPa),Temperature (C))
 0.000000e+00,0.000000e+00,7.339048e-01,7.178232e-01,-2.215603e-02,2.026128e-03,9.139655e-01,-7.655586e-02,9.905214e-01,1.273103e+00,1.709000e+02
 1.000048e+01,1.157463e-04,7.337667e-01,7.325163e-01,-1.893765e-03,1.153928e-03,1.099459e+00,-7.655586e-02,1.176015e+00,1.526154e+00,1.709000e+02
 2.000096e+01,2.314926e-04,7.340589e-01,7.345830e-01,9.236522e-04,2.331198e-04,1.349133e+00,-7.655586e-02,1.425689e+00,1.865644e+00,1.710000e+02

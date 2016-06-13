@@ -18,8 +18,8 @@ REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 ##################################
 # CHOOSE ANALYSIS OPTIONS
 ##################################
-PLOT = 1
-SAVEFIG = 1
+PLOT = 0
+SAVEFIG = 0
 SAVECSV = 1
 PLOT_RESID = 0
 PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
@@ -67,7 +67,8 @@ IMPORT_ARR = np.genfromtxt(fname=IMPORT_FNAME, delimiter=',', skip_header=1,
 TIME_ALL = daf.xldate_to_datetime(IMPORT_ARR[:, COL_TIME])
 TIME_SHIFT = datetime.timedelta(days=DUR_START)
 TIME_START = TIME_ALL[0] + TIME_SHIFT
-print("Time of analysis start: " + TIME_START.strftime('%Y/%m/%d %H:%M:%S'))
+
+print("Time of analysis start: " + TIME_START.strftime('%Y/%m/%d %H:%M:%S.%f').rstrip('0'))
 DUR_DAY_ALL = daf.duration(IMPORT_ARR[:, COL_TIME])  # ALL DURATION DATA
 FDEN_ALL = IMPORT_ARR[:, COL_FDEN]  # NO TIME AVERAGEING
 PCON_ALL = IMPORT_ARR[:, COL_PCON] / 145.0
@@ -94,6 +95,13 @@ INTERP_NUM = int(DUR_SEC_LEN / INTERP_INC) + 1  # NUM. OF INTERPOLATION INCREMEN
 print("INTERP NUM: " + str(INTERP_NUM))
 DUR_DAY_INTERP = np.linspace(DUR_START, DUR_END, num=INTERP_NUM, endpoint=True)
 DUR_SEC_INTERP = DUR_DAY_INTERP * 24 * 3600
+
+# TVEC = np.array(INTERP_NUM) .dtype(str)
+TVEC = []
+for i in xrange(INTERP_NUM):
+    time = TIME_START + datetime.timedelta(days=DUR_DAY_ALL[i])
+    TVEC.append(time.strftime('%Y/%m/%d %H:%M:%S.%f').rstrip('0'))
+# print TVEC[0:10]
 
 # functionS for interpolating the fractional density
 FUNC_FDEN_INTERP = interpolate.interp1d(DUR_DAY_ALL, FDEN_ALL)
@@ -176,6 +184,7 @@ PTER_INTERP = PCON_INTERP - PPOR_INTERP  # Terzahi pressure
 PSOL_INTERP = (PCON_INTERP - PPOR_INTERP * (1 - FDEN_INTERP)) / FDEN_INTERP
 
 OUT_INTERP_DATA = np.zeros((len(DUR_SEC_INTERP), 11))
+# OUT_INTERP_DATA[:, 0] = TVEC
 OUT_INTERP_DATA[:, 0] = DUR_SEC_INTERP
 OUT_INTERP_DATA[:, 1] = DUR_DAY_INTERP
 OUT_INTERP_DATA[:, 2] = FDEN_INTERP
@@ -188,6 +197,12 @@ OUT_INTERP_DATA[:, 8] = PTER_INTERP
 OUT_INTERP_DATA[:, 9] = PSOL_INTERP
 OUT_INTERP_DATA[:, 10] = TEMP_INTERP
 
+# # OUT_INTERP_DATA = np.hstack((, TVEC))
+# TEST = np.vstack((DUR_SEC_INTERP, DUR_DAY_INTERP, FDEN_INTERP,
+#                   FDEN_FIT_INTERP, VSTRN_FIT_INTERP, VSTRN_RATE_FIT_INTERP,
+#                   PCON_INTERP, PPOR_INTERP, PTER_INTERP, PSOL_INTERP,
+#                   TEMP_INTERP, TVEC))
+# print TEST.T[0:4,:]
 ##################################
 # PLOTTING/EXPORTING BELOW
 ##################################
@@ -367,13 +382,20 @@ if SAVECSV != 0:
     OUT_FILENAME_REPORT = PATH + TEST_NAME + STAGE_ID + '_FITREPORT.csv'
 
     # HEADER = "Interpolated Data For Test: " + str(TEST_NAME) + "/n"
-    HEADER = "Seconds, Days, Fractional Density, Fit to Fractional Density," +\
+    LINE00 = "Analysis by Brandon Lampe, performed on: " +\
+             datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S').rstrip('0')
+    LINE01 = "Experimental results below begin at: " +\
+             TIME_START.strftime('%Y/%m/%d %H:%M:%S').rstrip('0')
+
+    LINE02 = "Duration (sec),Duration (day),Fractional Density," +\
+             "Fit to Fractional Density," +\
              "Fit to Volume Strain,Fit to Volume Strain Rate (1/sec)," +\
-             "Confining Pressure (MPa), Pore Pressure (MPa)," +\
-             "Terzaghi Pressure (MPa), Solid Pressure (MPa)," +\
+             "Confining Pressure (MPa),Pore Pressure (MPa)," +\
+             "Terzaghi Pressure (MPa),Solid Pressure (MPa)," +\
              "Temperature (C))"
+    HEADER = '\n'.join([LINE00, LINE01, LINE02])
     np.savetxt(OUT_FILENAME, OUT_INTERP_DATA, fmt='%.6e', delimiter=',',
-               newline='\n', header=str(HEADER), comments="")
+               newline='\n', header=HEADER, comments="")
     print("Saved Data As: " + OUT_FILENAME)
 
     OUT = open(OUT_FILENAME_REPORT, 'w')
