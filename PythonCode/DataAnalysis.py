@@ -8,6 +8,7 @@ from matplotlib.ticker import FuncFormatter
 from scipy import interpolate
 # from scipy import optimize
 from scipy import linalg
+import pickle
 # import lmfit
 
 # relative path to module
@@ -18,22 +19,30 @@ REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 ##################################
 # CHOOSE ANALYSIS OPTIONS
 ##################################
-RUN_FIT_FDEN = 0  # SHOULD THE FIT TO FDEN BE CALCULATED
+RUN_FIT_FDEN = 1  # SHOULD THE FIT TO FDEN BE CALCULATED
+ALTDOMAIN_FIT_FDEN = 1  # FIT FDEN TO AN ALTERNATE DOMAIN THAN DEFINED BY
+  # DUR_START AND DUR_STOP
+MODEL_TYPE = 5  # need to write summary of model types
 PLOT = 1  # SHOULD THE RESULTS BE PLOTTED
 SAVEFIG = 1  # SHOULD THE PLOTS BE SAVED
-SAVECSV = 0  # SHOULD A .CSV OF THE RESULTS BE SAVED
-PLOT_RESID = 0  # SHOULD RESIDUALS OF THE FIT BE PRINTED
+SAVECSV = 1  # SHOULD A .CSV OF THE RESULTS BE SAVED
+PLOT_FITDATA = 1  # SHOULD RESIDUALS OF THE FIT BE PRINTED
 PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
-STAGE_ID = '_TempAdj'  # '_Stage01'  # IF TEST CONSISTS OF MULTIPLE STAGES
+STAGE_ID = '_FitToDayNine'  # '_Stage01'  # IF TEST CONSISTS OF MULTIPLE STAGES
 ADJUST_FOR_TEMP = 1  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
 
 # IF RESULTS FROM CS MODEL ARE TO BE PLOTTED ALSO, DEFINE PATH TO DATA
 PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
              'UNM_WP_HY_175_09_OUT' + '.csv'
 
-
-DUR_START = 2.09  # START PLOTTING (days)
+# DUR_START = 2.096  # START PLOTTING (days)
+# DUR_END = 2.9  # END PLOTTING (days)
+DUR_START = 2.093  # START PLOTTING (days)
 DUR_END = 19.9  # END PLOTTING (days)
+ALT_START = 2.093
+ALT_END = 9
+
+# interpolation spacing
 INTERP_INC = 10  # SECONDS, SIZE OF INTERPOLATION INCREMENT
 
 # FOLDER_DIR = 'UNM_WP_HY_90_02'
@@ -46,10 +55,12 @@ FOLDER_DIR = 'UNM_WP_HY_175_04'
 # FOLDER_DIR = 'UNM_WP_HY_175_09'
 
 # load tests data - .csv file that has been exported directly from .xlsx
-TEST_NAME = FOLDER_DIR[-6:]
+TEST_NAME = FOLDER_DIR[10:]  # + '_comp'
+print(TEST_NAME)
 
 # DEFINE COLUMN INDEX IN .CSV FILES
 COL_TIME, COL_TEMP, COL_PCON, COL_PPOR, COL_FDEN = daf.column_idx(TEST_NAME)
+
 
 RHOIS = 2160.0  # ASSUMED IN-SITU DENSITY (KG/M3), FOR STRAIN MEASURE
 COL_MAX = max(COL_TIME, COL_TEMP, COL_PCON, COL_PPOR, COL_FDEN) + 1
@@ -114,11 +125,25 @@ PCON_INTERP = FUNC_PCON_INTERP(DUR_DAY_INTERP)
 PPOR_INTERP = FUNC_PPOR_INTERP(DUR_DAY_INTERP)
 TEMP_INTERP = FUNC_TEMP_INTERP(DUR_DAY_INTERP)
 
+# CALCULATE ALTERNATE FITTING DOMAIN IF
+if ALTDOMAIN_FIT_FDEN == 1:
+    ALT_DAY_LEN = (ALT_END - ALT_START)
+    ALT_SEC_LEN = ALT_DAY_LEN * 24 * 3600
+    ALT_INTERP_NUM = int(ALT_SEC_LEN / INTERP_INC) + 1
+    ALT_DUR_DAY_INTERP = np.linspace(ALT_START, ALT_END, num=ALT_INTERP_NUM,
+                                      endpoint=True)
+    ALT_FDEN_INTERP = FUNC_FDEN_INTERP(ALT_DUR_DAY_INTERP)
+
 if ADJUST_FOR_TEMP == 1:  # MODIFICATION TO FDEN MEASUREMENT FOR DELTA TEMP.
     MOD_FACT = 0.0016  # 1/DEGREE C
     DELTA_TEMP = np.gradient(TEMP_INTERP)
-    plt.plot(DUR_DAY_INTERP, FDEN_INTERP, 'g-', label='Original')
+    # plt.plot(DUR_DAY_INTERP, FDEN_INTERP, 'g-', label='Original')
     FDEN_INTERP = FDEN_INTERP + np.cumsum(DELTA_TEMP) * MOD_FACT
+    if ALTDOMAIN_FIT_FDEN == 1:
+        ALT_TEMP_INTERP = FUNC_TEMP_INTERP(ALT_DUR_DAY_INTERP)
+        ALT_DELTA_TEMP = np.gradient(ALT_TEMP_INTERP)
+        ALT_FDEN_INTERP = ALT_FDEN_INTERP + \
+            np.cumsum(ALT_DELTA_TEMP) * MOD_FACT
     print("FDEN was modified for changing temp. by: " +
           str(MOD_FACT) + " (1/DEGREE C)")
     # plt.plot(DUR_DAY_INTERP, FDEN_INTERP, 'r-', label='Adjusted')
@@ -152,45 +177,54 @@ VSTRN_RATE = DELTA_VSTRN / DELTA_SEC
 VSTRN_RATE_INTERP = DELTA_VSTRN_INTERP / DELTA_SEC_INTERP
 
 if RUN_FIT_FDEN == 1:
-    MODEL = daf.fit_fden(FDEN_INTERP, DUR_DAY_INTERP)  # perform the FIT
-    SLOPE, C, B, G, KEXP, AEXP, AZERO, AINF = MODEL.best_values.values()
-    PARM_FIT = MODEL.best_values.values()
-    # print(PARM_FIT)
-    # print(MODEL.fit_report())
-    # print(MODEL.ci_out)
-    # print(MODEL.best_values)
+    if ALTDOMAIN_FIT_FDEN == 1:
+        FIT_DOMAIN = ALT_DUR_DAY_INTERP
+        FIT_RANGE = ALT_FDEN_INTERP
+    else:
+        FIT_DOMAIN = DUR_DAY_INTERP
+        FIT_RANGE = FDEN_INTERP
 
-    # plt.figure(0)
-    # MODEL.plot_fit()
-    # plt.show
+    FDEN_FIT_INTERP, MODEL = daf.fit_fden(fden_interp=FIT_RANGE,
+                                          dur_day_interp=FIT_DOMAIN,
+                                          which_mod=MODEL_TYPE,
+                                          whole_domain=DUR_DAY_INTERP)
+
+    print(MODEL.best_values)
+    print(MODEL.fit_report())
+    print(MODEL.ci_out)
+
     FIT_REPORT = MODEL.fit_report()
-    # FIT_REPORT_CI = MODEL.ci_report()
-
     FIT_CI = MODEL.ci_out
-    FIT_RESID = MODEL.residual
-    FIT_RESID_NORM = linalg.norm(FIT_RESID)
-    print("Error Norm of Fit: " + str(FIT_RESID_NORM))
+    # FIT_RESID = MODEL.residual
+    FIT_RESID = FDEN_FIT_INTERP - FDEN_INTERP
+    # CALCULATED THE SCALED P-NORM (2)
+    FIT_RESID_NORM = linalg.norm(FIT_RESID) / len(FIT_RESID)**(1. / 2)
+    print("Scaled Error Norm of Fit: " + str(FIT_RESID_NORM))
 
-    if PLOT_RESID == 1:
-        plt.figure(0)
-        MODEL.plot_residuals()
+    if PLOT_FITDATA == 1:
+        FIG0, FITPLOT = plt.subplots(2, figsize=(13, 8), sharex=True)
+        FITPLOT[0].set_title("Test: " + FOLDER_DIR, fontsize=18)
+        # MODEL.plot_residuals()
+        FITPLOT[0].plot(DUR_DAY_INTERP, FIT_RESID, 'b.')
+        FITPLOT[0].grid()
+        FITPLOT[0].set_ylabel("Residual (Fractional Density)")
 
-    FDEN_FIT_INTERP = MODEL.eval(x=DUR_DAY_INTERP,
-                                 slope=SLOPE,
-                                 c=C,
-                                 b=B,
-                                 g=G,
-                                 kexp=KEXP,
-                                 aexp=AEXP,
-                                 azer=AZERO,
-                                 ainf=AINF)
+        LBL_FIT = ["Initial Guess", "Best Fit", "Interpolated Data"]
+        FITPLOT[1].plot(FIT_DOMAIN, MODEL.init_fit, 'g--')
+        FITPLOT[1].plot(FIT_DOMAIN, MODEL.best_fit, 'b-')
+        FITPLOT[1].plot(FIT_DOMAIN, FIT_RANGE, 'r-')
+        FITPLOT[1].grid()
+        FITPLOT[1].set_ylabel("Fractional Density")
+        FITPLOT[1].set_xlabel("Test Duration (day)")
+        FITPLOT[1].legend(LBL_FIT, loc=0)
 
-    # FDEN_FIT_INTERP = daf.model_fden(DUR_DAY_INTERP, PARM_FIT)
-    # FDEN_FIT_INTERP = MODEL.best_fit
+        if PLOT == 0:
+            plt.show()
+
     VSTRN_FIT_INTERP = -np.log(FDEN0 / FDEN_FIT_INTERP)
     DELTA_VSTRN_FIT_INTERP = np.gradient(VSTRN_FIT_INTERP)
     VSTRN_RATE_FIT_INTERP = DELTA_VSTRN_FIT_INTERP / DELTA_SEC_INTERP
-else:
+else:  # returns null vectors for fits
     FDEN_FIT_INTERP = np.zeros(len(DUR_SEC_INTERP))
     VSTRN_FIT_INTERP = np.zeros(len(DUR_SEC_INTERP))
     VSTRN_RATE_FIT_INTERP = np.zeros(len(DUR_SEC_INTERP))
@@ -214,7 +248,6 @@ OUT_INTERP_DATA[:, 10] = TEMP_INTERP
 ##################################
 # PLOTTING/EXPORTING BELOW
 ##################################
-# if PLOT_RESID == 1:
 
 # LOAD DATA FROM CS MODEL SIMULATION TO PLOT AGAINST EXPERIMENTAL RESULTS
 if PLOT_CSMOD == 1:
@@ -369,21 +402,25 @@ AXARR[2].tick_params(labelsize=FS, pad=10)
 LOWEST_CHART = NUM_SUBPLOT - 1
 AXARR[LOWEST_CHART].set_xlabel("Test Duration [days]", fontsize=FS,
                                labelpad=10)
-MAJORFORMATTER = FormatStrFormatter('%2.2f')
-AXARR[LOWEST_CHART].xaxis.set_major_formatter(MAJORFORMATTER)
+# MAJORFORMATTER = FormatStrFormatter('%2.3f')
+# AXARR[LOWEST_CHART].xaxis.set_major_formatter(MAJORFORMATTER)
 AXARR[LOWEST_CHART].tick_params(labelsize=FS, pad=10)
 # AXARR[LOWEST_CHART].set_xlim(DUR_START, DUR_END)
 # FIG1.tight_layout()
+FIG0_NAME = TEST_NAME + STAGE_ID + "_PLOTS_RESID.pdf"
 FIG1_NAME = TEST_NAME + STAGE_ID + "_PLOTS.pdf"
 PATH = REPO_DIR + '/' + FOLDER_DIR + '/'
 #################################
 if SAVEFIG != 0:
+    if PLOT_FITDATA == 1:
+        FIG0.savefig(PATH + FIG0_NAME)
     FIG1.savefig(PATH + FIG1_NAME)
     print("Figure Saved As: " + FIG1_NAME)
 if SAVECSV != 0:
     # SAVE RESULTS TO .CSV FILE
     OUT_FILENAME = PATH + TEST_NAME + STAGE_ID + '_OUT.csv'
     OUT_FILENAME_REPORT = PATH + TEST_NAME + STAGE_ID + '_FITREPORT.csv'
+    OUT_FILENAME_PARM = PATH + TEST_NAME + STAGE_ID + '_PARM.bin'
 
     # HEADER = "Interpolated Data For Test: " + str(TEST_NAME) + "/n"
     LINE00 = "Analysis by Brandon Lampe, performed on: " +\
@@ -402,9 +439,19 @@ if SAVECSV != 0:
                newline='\n', header=HEADER, comments="")
     print("Saved Data As: " + OUT_FILENAME)
 
+    # WRITE FIT REPORT
     OUT = open(OUT_FILENAME_REPORT, 'w')
     OUT.write(FIT_REPORT)
-    # np.savetxt(OUT_FILENAME_REPORT, FIT_REPORT)
+
+    # WRITE PARAMETER VALUES ONLY, for input into python later
+    with open(OUT_FILENAME_PARM, 'wb') as handle:
+        pickle.dump(MODEL.best_values, handle)
+
+    # read parameter values from pickled file
+    with open(OUT_FILENAME_PARM, 'rb') as handle:
+        TEST_READ = pickle.loads(handle.read())
+
     print("Saved Fit Report As: " + OUT_FILENAME_REPORT)
+    print("Saved Parameters As: " + OUT_FILENAME_PARM)
 if PLOT != 0:
     plt.show()

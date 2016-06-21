@@ -1,0 +1,21 @@
+[[Model]]
+    Model(_eval)
+[[Fit Statistics]]
+    # function evals   = 53
+    # data points      = 59677
+    # variables        = 4
+    chi-square         = 0.057
+    reduced chi-square = 0.000
+    Akaike info crit   = -826869.724
+    Bayesian info crit = -826833.737
+[[Variables]]
+    a:      -0.19410594 +/- 0.001562 (0.81%) (init= 0.1)
+    c:       0.83485477 +/- 0.000980 (0.12%) (init= 0.7931121)
+    b:       199.048068 +/- 0.320650 (0.16%) (init= 5)
+    end:     9 (fixed)
+    d:       0.95271835 +/- 9.40e-06 (0.00%) (init= 1.00052)
+    start:   2.093 (fixed)
+[[Correlations]] (unreported correlations are <  0.100)
+    C(a, b)                      = -0.896 
+    C(a, d)                      = -0.752 
+    C(b, d)                      =  0.451 
