@@ -24,22 +24,21 @@ ALTDOMAIN_FIT_FDEN = 1  # FIT FDEN TO AN ALTERNATE DOMAIN THAN DEFINED BY
   # DUR_START AND DUR_STOP
 MODEL_TYPE = 5  # need to write summary of model types
 PLOT = 1  # SHOULD THE RESULTS BE PLOTTED
-SAVEFIG = 1  # SHOULD THE PLOTS BE SAVED
-SAVECSV = 1  # SHOULD A .CSV OF THE RESULTS BE SAVED
-PLOT_FITDATA = 1  # SHOULD RESIDUALS OF THE FIT BE PRINTED
-PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
+SAVEFIG = 0  # SHOULD THE PLOTS BE SAVED
+SAVECSV = 0  # SHOULD A .CSV OF THE RESULTS BE SAVED
+PLOT_FITDATA = 0  # SHOULD RESIDUALS OF THE FIT BE PRINTED
+PLOT_CSMOD = 1  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
 STAGE_ID = '_FitToDayNine'  # '_Stage01'  # IF TEST CONSISTS OF MULTIPLE STAGES
 ADJUST_FOR_TEMP = 1  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
 
 # IF RESULTS FROM CS MODEL ARE TO BE PLOTTED ALSO, DEFINE PATH TO DATA
 PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
-             'UNM_WP_HY_175_09_OUT' + '.csv'
+             'UNM_WP_HY_175_04_OUT' + '.csv'
 
-# DUR_START = 2.096  # START PLOTTING (days)
-# DUR_END = 2.9  # END PLOTTING (days)
-DUR_START = 2.093  # START PLOTTING (days)
+DUR_START = 2.096  # START PLOTTING (days)
 DUR_END = 19.9  # END PLOTTING (days)
-ALT_START = 2.093
+# DUR_START = 2.093  # START PLOTTING (days)
+ALT_START = 2.096
 ALT_END = 9
 
 # interpolation spacing
@@ -231,19 +230,23 @@ else:  # returns null vectors for fits
 
 PTER_INTERP = PCON_INTERP - PPOR_INTERP  # Terzahi pressure
 PSOL_INTERP = (PCON_INTERP - PPOR_INTERP * (1 - FDEN_INTERP)) / FDEN_INTERP
+LEN_SEC_INTERP = DUR_SEC_INTERP - DUR_SEC_INTERP[0]
+LEN_DAY_INTERP = DUR_DAY_INTERP - DUR_DAY_INTERP[0]
 
-OUT_INTERP_DATA = np.zeros((len(DUR_SEC_INTERP), 11))
+OUT_INTERP_DATA = np.zeros((len(DUR_SEC_INTERP), 13))
 OUT_INTERP_DATA[:, 0] = DUR_SEC_INTERP
 OUT_INTERP_DATA[:, 1] = DUR_DAY_INTERP
-OUT_INTERP_DATA[:, 2] = FDEN_INTERP
-OUT_INTERP_DATA[:, 3] = FDEN_FIT_INTERP
-OUT_INTERP_DATA[:, 4] = VSTRN_FIT_INTERP
-OUT_INTERP_DATA[:, 5] = VSTRN_RATE_FIT_INTERP
-OUT_INTERP_DATA[:, 6] = PCON_INTERP
-OUT_INTERP_DATA[:, 7] = PPOR_INTERP
-OUT_INTERP_DATA[:, 8] = PTER_INTERP
-OUT_INTERP_DATA[:, 9] = PSOL_INTERP
-OUT_INTERP_DATA[:, 10] = TEMP_INTERP
+OUT_INTERP_DATA[:, 2] = LEN_SEC_INTERP
+OUT_INTERP_DATA[:, 3] = LEN_DAY_INTERP
+OUT_INTERP_DATA[:, 4] = FDEN_INTERP
+OUT_INTERP_DATA[:, 5] = FDEN_FIT_INTERP
+OUT_INTERP_DATA[:, 6] = VSTRN_FIT_INTERP
+OUT_INTERP_DATA[:, 7] = VSTRN_RATE_FIT_INTERP
+OUT_INTERP_DATA[:, 8] = PCON_INTERP
+OUT_INTERP_DATA[:, 9] = PPOR_INTERP
+OUT_INTERP_DATA[:, 10] = PTER_INTERP
+OUT_INTERP_DATA[:, 11] = PSOL_INTERP
+OUT_INTERP_DATA[:, 12] = TEMP_INTERP
 
 ##################################
 # PLOTTING/EXPORTING BELOW
@@ -311,7 +314,7 @@ AXARR[0].plot(DUR_DAY_INTERP, FDEN_INTERP, linestyle='-', linewidth=1,
 if RUN_FIT_FDEN == 1:
     AXARR[0].plot(DUR_DAY_INTERP, FDEN_FIT_INTERP, linestyle='-',
                   linewidth=4, marker=None, markersize=1, color='b',
-                  alpha=1)
+                  alpha=.5)
 if PLOT_CSMOD == 1:
     AXARR[0].plot(CS_DUR_DAY, CS_FDEN, linestyle='-',
                   linewidth=2, marker=None, markersize=1, color='g',
@@ -428,8 +431,9 @@ if SAVECSV != 0:
     LINE01 = "Experimental results below begin at: " +\
              TIME_START.strftime('%Y/%m/%d %H:%M:%S').rstrip('0')
 
-    LINE02 = "Duration (sec),Duration (day),Fractional Density," +\
-             "Fit to Fractional Density," +\
+    LINE02 = "Duration (sec),Duration (day)," +\
+             "Elapsed Time (sec),Elapsed Time (day)," +\
+             "Interpolated Fractional Density,Fit to Fractional Density," +\
              "Fit to Volume Strain,Fit to Volume Strain Rate (1/sec)," +\
              "Confining Pressure (MPa),Pore Pressure (MPa)," +\
              "Terzaghi Pressure (MPa),Solid Pressure (MPa)," +\
