@@ -86,129 +86,215 @@ def find_nearest(array, value):
     return idx
 
 
+def fit_definition_str(which_mod):
+    """ provides a string that defines the fitting function
+        -   these function defintions (defined via strings)
+            will be called by "fit_fden"
+    """
+    def_str = which_mod - 1
+
+    # model 1
+    gompertz_1 = 'def gompertz(x, intercept, start, a, b, c):'
+    gompertz_2 = '    fden = intercept + a * exp(-exp(b - c * (x - start)))'
+    gompertz_3 = '    return fden'
+    str_gompertz = '\n'.join([gompertz_1, gompertz_2, gompertz_3])
+
+    # mode1 2
+    schnute_1 = 'def schnute(x, start, end, a, b, c, d):'
+    schnute_2a = '    fden = (c**b + (d**b - c**b) * (1 - exp(-a*(x - start)))'
+    schnute_2b = '/(1 - exp(-a*(end - start))))**(1 / b)'
+    schnute_2 = schnute_2a + schnute_2b
+    schnute_3 = '    return fden'
+    str_schnute = '\n'.join([schnute_1, schnute_2, schnute_3])
+
+    # model 3
+    gen_logistic_1 = 'def gen_logistic(x, start, a, b, c, d):'
+    gen_logistic_2 = '    fden = a / (d + exp(b - c*(x - start)))'
+    gen_logistic_3 = '    return fden'
+    str_gen_logistic = '\n'.join([gen_logistic_1, gen_logistic_2,
+                                  gen_logistic_3])
+
+    script_all_func = [str_gompertz, str_schnute, str_gen_logistic]
+    return script_all_func[def_str]
+
+
 def fit_fden(fden_interp, dur_day_interp, which_mod, whole_domain):
-    # fit the fractional density using the LMFIT package, combine 2 models
-    # ref: https://lmfit.github.io/lmfit-py/builtin_models.html
+    '''fit the fractional density using the LMFIT package
+        Non-Linear Least-Squars Minimizations and Curve Fitting Library
+        ref: https://lmfit.github.io/lmfit-py/builtin_models.html
+        ref: http://cars9.uchicago.edu/software/python/lmfit/index.html
+        CITATION: http://dx.doi.org/10.5281/zenodo.11813
+    '''
+    #  call function that defines which eqn will be used for the fit
+    script = fit_definition_str(which_mod)
 
     if which_mod == 1:
-        # class StepModel,logistic = f(x; A, mu, sigma) = A{1-1/(1+exp(alpha))}
-        #                   where: alpha = (x - mu)/sigma
-        # logistic = 'ainf + (azero-ainf)/(1+(x/c)**b)**g'
-        # linear = 'slope * x'
-        # exponential = 'aexp * x ** kexp'
-        # comb_mod = (logistic + linear + exponential)
-        print("Logistic Fit Chosen")
-        # asym_mod = lmfit.models.ExpressionModel('(low_bnd + (up_bnd-low_bnd)/(1+(x/center)**b)**g)')
-        asym_mod = lmfit.models.ExpressionModel('(low_bnd+(up_bnd-low_bnd)/(1+exp(slope*(x-center)))**(1/nu))')
+        print("Gompertz equation was chosen")
+        gompertz_mod = lmfit.models.ExpressionModel(
+            'gompertz(x,intercept,start,a,b,c)',
+            init_script=script,
+            independent_vars=['x'])
         # define initial guess values for parameters for each model
-        parms = asym_mod.make_params(up_bnd=0.87, low_bnd=0.8, center=2.092,
-                                     b=27.0, g=0.05)
-        parms = asym_mod.make_params(up_bnd=0.99, low_bnd=0.7,
-                                     slope=27.0, nu=1e-4, center=2.092)
-        parms['nu'].set(0.5, min=1e-6)  # must be greater than zero
+        parms = gompertz_mod.make_params()
+        parms['intercept'].set(value=0.6, vary=True)
+        parms['start'].set(value=dur_day_interp.min(), vary=False)
+        parms['a'].set(value=5.0, vary=True)
+        parms['b'].set(value=1.0, vary=True)
+        parms['c'].set(value=1.0, vary=True)
 
-        model_result = asym_mod.fit(fden_interp, parms, x=dur_day_interp)
+        model_result = gompertz_mod.fit(fden_interp, parms, x=dur_day_interp)
         parm_result = model_result.best_values
         fden_fit_interp = model_result.eval(x=whole_domain,
-                                            center=parm_result["center"],
-                                            slope=parm_result["slope"],
-                                            nu=parm_result["nu"],
-                                            low_bnd=parm_result["low_bnd"],
-                                            up_bnd=parm_result["up_bnd"])
-
-        # fden_fit_interp = model_result.eval(x=whole_domain,
-        #                                     c=parm_result["center"],
-        #                                     b=parm_result["b"],
-        #                                     g=parm_result["g"],
-        #                                     azero=parm_result["azero"],
-        #                                     ainf=parm_result["ainf"])
-
-
+                                            start=parm_result["start"],
+                                            intercept=parm_result["intercept"],
+                                            a=parm_result["a"],
+                                            b=parm_result["b"],
+                                            c=parm_result["c"])
     if which_mod == 2:
-        print("Exponential Fit Chosen")
-        # class LinearModel = f(x; m,b)= mx + b
-        # STEP_MOD = lmfit.models.StepModel(form='logistic', prefix='step_')
-        line_mod = lmfit.models.LinearModel(prefix='line_')
-        powr_mod = lmfit.models.PowerLawModel(prefix='powr_')
-
-        # parms = line_mod.make_params(intercept=fden_interp.min(), slope=0.1)
-        parms = powr_mod.make_params(powr_amplitude=0.25, powr_exponent=0.1)
-
-        line_powr_mod = line_mod + powr_mod  # COMBINE THE TWO MODELS
-
-        model_result = powr_mod.fit(fden_interp, parms, x=dur_day_interp)
-        parm_result = model_result.best_values
-
-        fden_fit_interp = model_result.eval(x=whole_domain,
-                                            powr_amplitude=parm_result["powr_amplitude"],
-                                            powr_exponent=parm_result["powr_exponent"])
-    if which_mod == 3:
-        print("Logist-Exponential Fit Chosen")
-        # class LinearModel = f(x; m,b)= mx + b
-        step_mod = lmfit.models.StepModel(form='logistic', prefix='step_')
-        # line_mod = lmfit.models.LinearModel(prefix='line_')
-        powr_mod = lmfit.models.PowerLawModel(prefix='powr_')
-
-        # parms = line_mod.make_params(intercept=fden_interp.min(), slope=0.1)
-        parms = powr_mod.make_params(powr_amplitude=0.05, powr_exponent=0.1)
-        parms += step_mod.make_params(step_center=2.09, step_amplitude=0.1,
-                                      step_sigma=1e-4)
-        # parms += step_mod.guess(fden_interp, x=dur_day_interp,
-        #                         step_center=2.09, step_amplitude=0.7)
-        powrStep_mod = step_mod + powr_mod  # COMBINE THE TWO MODELS
-
-        model_result = powrStep_mod.fit(fden_interp, parms, x=dur_day_interp)
-        parm_result = model_result.best_values
-
-        fden_fit_interp = model_result.eval(x=whole_domain,
-                                            step_amplitude=parm_result["step_amplitude"],
-                                            step_center=parm_result["step_center"],
-                                            step_sigma=parm_result["step_sigma"],
-                                            powr_amplitude=parm_result["powr_amplitude"],
-                                            powr_exponent=parm_result["powr_exponent"])
-    if which_mod == 4:
-        print("Logist (3 param) Fit Chosen")
-        # class LinearModel = f(x; m,b)= mx + b
-        step_mod = lmfit.models.StepModel(form='logistic', prefix='step_')
-        # line_mod = lmfit.models.LinearModel(prefix='line_')
-        # powr_mod = lmfit.models.PowerLawModel(prefix='powr_')
-
-        # parms = line_mod.make_params(intercept=fden_interp.min(), slope=0.1)
-        # parms = powr_mod.make_params(powr_amplitude=0.4, powr_exponent=1.0)
-        parms = step_mod.make_params(step_center=2.09, step_sigma=0.001,
-                                     step_amplitude=0.91)
-
-        model_result = step_mod.fit(fden_interp, parms, x=dur_day_interp)
-        parm_result = model_result.best_values
-
-        fden_fit_interp = model_result.eval(x=whole_domain,
-                                            step_amplitude=parm_result["step_amplitude"],
-                                            step_center=parm_result["step_center"],
-                                            step_sigma=parm_result["step_sigma"])
-
-    if which_mod == 5:
         # Schnute's equation
         print("Schnute's equation was chosen")
-        schnute_mod = lmfit.models.ExpressionModel('(c**b + (d**b-c**b)*(1-exp(-a*(x-start)))/(1-exp(-a*(end-start))))**(1/b)')
+        schnute_mod = lmfit.models.ExpressionModel(
+            'schnute(x,start,end,a,b,c,d)',
+            init_script=script,
+            independent_vars=['x'])
         # define initial guess values for parameters for each model
         parms = schnute_mod.make_params()
         parms['start'].set(value=dur_day_interp.min(), vary=False)
         parms['end'].set(value=dur_day_interp.max(), vary=False)
-        parms['c'].set(value=fden_interp.min() * 0.95, vary=True)
-        parms['d'].set(value=fden_interp.max() * 1.05, vary=True)
         parms['a'].set(value=0.1, vary=True)
         parms['b'].set(value=5.0, vary=True)
+        parms['c'].set(value=fden_interp.min() * 0.95, vary=True)
+        parms['d'].set(value=fden_interp.max() * 1.05, vary=True)
 
         model_result = schnute_mod.fit(fden_interp, parms, x=dur_day_interp)
         parm_result = model_result.best_values
         fden_fit_interp = model_result.eval(x=whole_domain,
                                             start=parm_result["start"],
                                             end=parm_result["end"],
-                                            c=parm_result["c"],
-                                            d=parm_result["d"],
                                             a=parm_result["a"],
-                                            b=parm_result["b"])
-    return fden_fit_interp, model_result
+                                            b=parm_result["b"],
+                                            c=parm_result["c"],
+                                            d=parm_result["d"])
+    if which_mod == 3:
+        # Generalized logistic function
+        print("Generalized logistic equation was chosen")
+        gen_logistic_mod = lmfit.models.ExpressionModel(
+            'gen_logistic(x,start,a,b,c,d)',
+            init_script=script,
+            independent_vars=['x'])
+        # define initial guess values for parameters for each model
+        parms = gen_logistic_mod.make_params()
+        parms['start'].set(value=dur_day_interp.min(), vary=True)
+        parms['a'].set(value=5.0, vary=True)
+        parms['b'].set(value=5.0, vary=True)
+        parms['c'].set(value=0.5, vary=True)
+        parms['d'].set(value=10, vary=True)
+
+        model_result = gen_logistic_mod.fit(fden_interp, parms,
+                                            x=dur_day_interp)
+        parm_result = model_result.best_values
+        fden_fit_interp = model_result.eval(x=whole_domain,
+                                            start=parm_result["start"],
+                                            a=parm_result["a"],
+                                            b=parm_result["b"],
+                                            c=parm_result["c"],
+                                            d=parm_result["d"])
+    return fden_fit_interp, model_result, script
+    # if which_mod == 1:
+    #     # class StepModel,logistic = f(x; A, mu, sigma) = A{1-1/(1+exp(alpha))}
+    #     #                   where: alpha = (x - mu)/sigma
+    #     # logistic = 'ainf + (azero-ainf)/(1+(x/c)**b)**g'
+    #     # linear = 'slope * x'
+    #     # exponential = 'aexp * x ** kexp'
+    #     # comb_mod = (logistic + linear + exponential)
+    #     print("Logistic Fit Chosen")
+    #     # asym_mod = lmfit.models.ExpressionModel('(low_bnd + (up_bnd-low_bnd)/(1+(x/center)**b)**g)')
+    #     asym_mod = lmfit.models.ExpressionModel('(low_bnd+(up_bnd-low_bnd)/(1+exp(slope*(x-center)))**(1/nu))')
+    #     # define initial guess values for parameters for each model
+    #     parms = asym_mod.make_params(up_bnd=0.87, low_bnd=0.8, center=2.092,
+    #                                  b=27.0, g=0.05)
+    #     parms = asym_mod.make_params(up_bnd=0.99, low_bnd=0.7,
+    #                                  slope=27.0, nu=1e-4, center=2.092)
+    #     parms['nu'].set(0.5, min=1e-6)  # must be greater than zero
+
+    #     model_result = asym_mod.fit(fden_interp, parms, x=dur_day_interp)
+    #     parm_result = model_result.best_values
+    #     fden_fit_interp = model_result.eval(x=whole_domain,
+    #                                         center=parm_result["center"],
+    #                                         slope=parm_result["slope"],
+    #                                         nu=parm_result["nu"],
+    #                                         low_bnd=parm_result["low_bnd"],
+    #                                         up_bnd=parm_result["up_bnd"])
+
+    #     # fden_fit_interp = model_result.eval(x=whole_domain,
+    #     #                                     c=parm_result["center"],
+    #     #                                     b=parm_result["b"],
+    #     #                                     g=parm_result["g"],
+    #     #                                     azero=parm_result["azero"],
+    #     #                                     ainf=parm_result["ainf"])
+
+
+    # if which_mod == 2:
+    #     print("Exponential Fit Chosen")
+    #     # class LinearModel = f(x; m,b)= mx + b
+    #     # STEP_MOD = lmfit.models.StepModel(form='logistic', prefix='step_')
+    #     line_mod = lmfit.models.LinearModel(prefix='line_')
+    #     powr_mod = lmfit.models.PowerLawModel(prefix='powr_')
+
+    #     # parms = line_mod.make_params(intercept=fden_interp.min(), slope=0.1)
+    #     parms = powr_mod.make_params(powr_amplitude=0.25, powr_exponent=0.1)
+
+    #     line_powr_mod = line_mod + powr_mod  # COMBINE THE TWO MODELS
+
+    #     model_result = powr_mod.fit(fden_interp, parms, x=dur_day_interp)
+    #     parm_result = model_result.best_values
+
+    #     fden_fit_interp = model_result.eval(x=whole_domain,
+    #                                         powr_amplitude=parm_result["powr_amplitude"],
+    #                                         powr_exponent=parm_result["powr_exponent"])
+    # if which_mod == 3:
+    #     print("Logist-Exponential Fit Chosen")
+    #     # class LinearModel = f(x; m,b)= mx + b
+    #     step_mod = lmfit.models.StepModel(form='logistic', prefix='step_')
+    #     # line_mod = lmfit.models.LinearModel(prefix='line_')
+    #     powr_mod = lmfit.models.PowerLawModel(prefix='powr_')
+
+    #     # parms = line_mod.make_params(intercept=fden_interp.min(), slope=0.1)
+    #     parms = powr_mod.make_params(powr_amplitude=0.05, powr_exponent=0.1)
+    #     parms += step_mod.make_params(step_center=2.09, step_amplitude=0.1,
+    #                                   step_sigma=1e-4)
+    #     # parms += step_mod.guess(fden_interp, x=dur_day_interp,
+    #     #                         step_center=2.09, step_amplitude=0.7)
+    #     powrStep_mod = step_mod + powr_mod  # COMBINE THE TWO MODELS
+
+    #     model_result = powrStep_mod.fit(fden_interp, parms, x=dur_day_interp)
+    #     parm_result = model_result.best_values
+
+    #     fden_fit_interp = model_result.eval(x=whole_domain,
+    #                                         step_amplitude=parm_result["step_amplitude"],
+    #                                         step_center=parm_result["step_center"],
+    #                                         step_sigma=parm_result["step_sigma"],
+    #                                         powr_amplitude=parm_result["powr_amplitude"],
+    #                                         powr_exponent=parm_result["powr_exponent"])
+    # if which_mod == 4:
+    #     print("Logist (3 param) Fit Chosen")
+    #     # class LinearModel = f(x; m,b)= mx + b
+    #     step_mod = lmfit.models.StepModel(form='logistic', prefix='step_')
+    #     # line_mod = lmfit.models.LinearModel(prefix='line_')
+    #     # powr_mod = lmfit.models.PowerLawModel(prefix='powr_')
+
+    #     # parms = line_mod.make_params(intercept=fden_interp.min(), slope=0.1)
+    #     # parms = powr_mod.make_params(powr_amplitude=0.4, powr_exponent=1.0)
+    #     parms = step_mod.make_params(step_center=2.09, step_sigma=0.001,
+    #                                  step_amplitude=0.91)
+
+    #     model_result = step_mod.fit(fden_interp, parms, x=dur_day_interp)
+    #     parm_result = model_result.best_values
+
+    #     fden_fit_interp = model_result.eval(x=whole_domain,
+    #                                         step_amplitude=parm_result["step_amplitude"],
+    #                                         step_center=parm_result["step_center"],
+    #                                         step_sigma=parm_result["step_sigma"])
 
 
 def model_fden(xday, parm):
@@ -320,3 +406,89 @@ def column_idx(testname_str):
     else:
         sys.exit('-- Column IDX not defined for this test --')
     return col_time, col_temp, col_pcon, col_ppor, col_fden
+
+
+# def plot_elastic(dur_day_interp, fden_interp,
+#                  font_size=14, fig_width=13, fig_height=10):
+#     """
+#     plotting function used for plotting the loading "elastic" stage
+#     """
+#     FIG1 = plt.figure(figsize=(fig_width, fig_height))
+
+#     AX1 = FIG1.add_subplot(311)
+#     AX1.set_title("Test: " + FOLDER_DIR, fontsize=18)
+#     LBL_FDEN = ["Fractional Density: Measure", "Fractional Denisty: Fit"]
+#     LBL_PRES = ["Confining Pressure"]
+#     AX1.plot(DUR_DAY_INTERP, FDEN_INTERP, linestyle='-', linewidth=1,
+#              marker='.', markersize=4, color='y', alpha=1)
+#     if RUN_FIT_FDEN == 1:
+#         AX1.plot(DUR_DAY_INTERP, FDEN_FIT_INTERP, linestyle='-',
+#                  linewidth=2, marker='o', markersize=1, color='b',
+#                  alpha=.5)
+#     AX1.grid(True)
+
+#     AX1A = AX1.twinx()
+#     AX1A.plot(DUR_DAY_INTERP, PCON_INTERP, linestyle='-',
+#               linewidth=1, marker='s', markersize=4, color='r',
+#               alpha=1)
+#     AX1A.set_ylabel("Pressure (MPa)", fontsize=FS)
+#     AX1A.tick_params(labelsize=FS)
+
+#     AX1.tick_params(labelsize=FS)
+#     AX1.tick_params(labelsize=FS, pad=10)
+
+#     AX1.legend(LBL_FDEN, frameon=1, framealpha=1, loc=2, fontsize=FS)
+#     AX1A.legend(LBL_PRES, frameon=1, framealpha=1, loc=4, fontsize=FS)
+#     AX1.set_ylabel("Fractional Density", fontsize=FS)
+#     AX1.set_xlabel("Duration (days)", fontsize=FS, labelpad=0)
+
+#     #################################
+#     LBL_STRN = ["Fit", "Measure"]
+#     # LBL_INTERVAL = ["Sampling"]
+#     AX2 = FIG1.add_subplot(312)
+#     AX2.plot(PCON_INTERP, VSTRN_FIT_INTERP, linestyle='-',
+#              linewidth=2, marker='o', markersize=1,
+#              color='b', alpha=0.5)
+#     AX2.plot(PCON_INTERP, VSTRN_INTERP, linestyle='-',
+#              linewidth=1, marker='.', markersize=4,
+#              color='y', alpha=1)
+#     AX2.grid(True)
+#     AX2.set_ylabel('Volume Strain', fontsize=FS)
+#     AX2.set_xlabel("Confining Pressure (MPa)", fontsize=FS, labelpad=0)
+
+#     AX2.legend(LBL_STRN, frameon=1, framealpha=0.75, loc=4, fontsize=FS)
+
+#     AX2.tick_params(labelsize=FS)
+#     AX2.tick_params(labelsize=FS, pad=10)
+#     AX2.tick_params(labelsize=FS, pad=10)
+#     #################################
+#     LBL_STRN_RATE = ["Volumetric Strain Rate"]
+#     LBL_COMP = ["Drained"]
+#     print(FIT_FDEN_INTERP.shape)
+#     print(VSTRN_RATE_FIT_INTERP.shape)
+
+#     AX3 = FIG1.add_subplot(313)
+#     AX3.semilogy(FDEN_FIT_INTERP, VSTRN_RATE_FIT_INTERP, linestyle='-',
+#                  linewidth=2, marker='.', markersize=4,
+#                  color='m', alpha=0.75)
+#     AX3.grid(True)
+#     AX3.set_ylabel(r'Strain Rate ($\frac{1}{sec}$)', fontsize=FS)
+
+#     AX3A = AX3.twinx()
+#     AX3A.semilogy(FDEN_FIT_INTERP, COMP_DRAINED_FIT_INTERP, linestyle='-',
+#                   linewidth=2, marker='s', markersize=4,
+#                   color='c', alpha=0.75)
+#     AX3A.set_ylabel(r'Compressibility ($\frac{1}{MPa}$)', fontsize=FS)
+#     AX3A.tick_params(labelsize=FS)
+
+#     AX3.legend(LBL_STRN_RATE, frameon=1, framealpha=.85, loc=3, fontsize=FS)
+#     AX3A.legend(LBL_COMP, frameon=1, framealpha=0.85, loc=4, fontsize=FS)
+
+#     AX3.tick_params(labelsize=FS)
+#     AX3.tick_params(labelsize=FS, pad=10)
+#     AX3.set_xlabel("Fractional Density", fontsize=FS, labelpad=0)
+#     AX3.tick_params(labelsize=FS, pad=10)
+
+#     # adjust spacing around subplots
+#     FIG1.subplots_adjust(left=0.1, right=0.925, bottom=0.06, top=0.95, wspace=0.2, hspace=0.25)
+
