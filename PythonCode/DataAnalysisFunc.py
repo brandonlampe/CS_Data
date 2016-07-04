@@ -14,6 +14,10 @@ import datetime
 import lmfit
 from math import factorial
 import sys
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import FuncFormatter
+
 
 def xldate_to_datetime(xldate):
     """ function converts Excel date (numeric) to an actual "date time"
@@ -86,6 +90,22 @@ def find_nearest(array, value):
     return idx
 
 
+def gompertz(x, intercept, start, a, b, c):
+    fden = intercept + a * np.exp(-np.exp(b - c * (x - start)))
+    return fden
+
+
+def schnute(x, start, end, a, b, c, d):
+    fden = (c**b + (d**b - c**b) * (1 - np.exp(-a * (x - start))) /
+                                   (1 - np.exp(-a * (end - start))))**(1 / b)
+    return fden
+
+
+def linear(x, slope, intercept):
+    fden = slope * x + intercept
+    return fden
+
+
 def fit_definition_str(which_mod):
     """ provides a string that defines the fitting function
         -   these function defintions (defined via strings)
@@ -108,13 +128,19 @@ def fit_definition_str(which_mod):
     str_schnute = '\n'.join([schnute_1, schnute_2, schnute_3])
 
     # model 3
+    linear_1 = 'def linear(x, slope, intercept):'
+    linear_2 = '    fden = slope * x + intercept'
+    linear_3 = '    return fden'
+    str_linear = '\n'.join([linear_1, linear_2, linear_3])
+
+    # model 4
     gen_logistic_1 = 'def gen_logistic(x, start, a, b, c, d):'
     gen_logistic_2 = '    fden = a / (d + exp(b - c*(x - start)))'
     gen_logistic_3 = '    return fden'
     str_gen_logistic = '\n'.join([gen_logistic_1, gen_logistic_2,
                                   gen_logistic_3])
 
-    script_all_func = [str_gompertz, str_schnute, str_gen_logistic]
+    script_all_func = [str_gompertz, str_schnute, str_linear, str_gen_logistic]
     return script_all_func[def_str]
 
 
@@ -176,6 +202,24 @@ def fit_fden(fden_interp, dur_day_interp, which_mod, whole_domain):
                                             c=parm_result["c"],
                                             d=parm_result["d"])
     if which_mod == 3:
+        # linear function
+        print("lienar equation was chosen")
+        linear_mod = lmfit.models.ExpressionModel(
+            'linear(x,slope,intercept)',
+            init_script=script,
+            independent_vars=['x'])
+        # define initial guess values for parameters for each model
+        parms = linear_mod.make_params()
+        parms['slope'].set(value=-1.0, vary=True)
+        parms['intercept'].set(value=2.0, vary=True)
+
+        model_result = linear_mod.fit(fden_interp, parms,
+                                      x=dur_day_interp)
+        parm_result = model_result.best_values
+        fden_fit_interp = model_result.eval(x=whole_domain,
+                                            slope=parm_result["slope"],
+                                            int=parm_result["intercept"])
+    if which_mod == 4:
         # Generalized logistic function
         print("Generalized logistic equation was chosen")
         gen_logistic_mod = lmfit.models.ExpressionModel(
@@ -200,82 +244,7 @@ def fit_fden(fden_interp, dur_day_interp, which_mod, whole_domain):
                                             c=parm_result["c"],
                                             d=parm_result["d"])
     return fden_fit_interp, model_result, script
-    # if which_mod == 1:
-    #     # class StepModel,logistic = f(x; A, mu, sigma) = A{1-1/(1+exp(alpha))}
-    #     #                   where: alpha = (x - mu)/sigma
-    #     # logistic = 'ainf + (azero-ainf)/(1+(x/c)**b)**g'
-    #     # linear = 'slope * x'
-    #     # exponential = 'aexp * x ** kexp'
-    #     # comb_mod = (logistic + linear + exponential)
-    #     print("Logistic Fit Chosen")
-    #     # asym_mod = lmfit.models.ExpressionModel('(low_bnd + (up_bnd-low_bnd)/(1+(x/center)**b)**g)')
-    #     asym_mod = lmfit.models.ExpressionModel('(low_bnd+(up_bnd-low_bnd)/(1+exp(slope*(x-center)))**(1/nu))')
-    #     # define initial guess values for parameters for each model
-    #     parms = asym_mod.make_params(up_bnd=0.87, low_bnd=0.8, center=2.092,
-    #                                  b=27.0, g=0.05)
-    #     parms = asym_mod.make_params(up_bnd=0.99, low_bnd=0.7,
-    #                                  slope=27.0, nu=1e-4, center=2.092)
-    #     parms['nu'].set(0.5, min=1e-6)  # must be greater than zero
 
-    #     model_result = asym_mod.fit(fden_interp, parms, x=dur_day_interp)
-    #     parm_result = model_result.best_values
-    #     fden_fit_interp = model_result.eval(x=whole_domain,
-    #                                         center=parm_result["center"],
-    #                                         slope=parm_result["slope"],
-    #                                         nu=parm_result["nu"],
-    #                                         low_bnd=parm_result["low_bnd"],
-    #                                         up_bnd=parm_result["up_bnd"])
-
-    #     # fden_fit_interp = model_result.eval(x=whole_domain,
-    #     #                                     c=parm_result["center"],
-    #     #                                     b=parm_result["b"],
-    #     #                                     g=parm_result["g"],
-    #     #                                     azero=parm_result["azero"],
-    #     #                                     ainf=parm_result["ainf"])
-
-
-    # if which_mod == 2:
-    #     print("Exponential Fit Chosen")
-    #     # class LinearModel = f(x; m,b)= mx + b
-    #     # STEP_MOD = lmfit.models.StepModel(form='logistic', prefix='step_')
-    #     line_mod = lmfit.models.LinearModel(prefix='line_')
-    #     powr_mod = lmfit.models.PowerLawModel(prefix='powr_')
-
-    #     # parms = line_mod.make_params(intercept=fden_interp.min(), slope=0.1)
-    #     parms = powr_mod.make_params(powr_amplitude=0.25, powr_exponent=0.1)
-
-    #     line_powr_mod = line_mod + powr_mod  # COMBINE THE TWO MODELS
-
-    #     model_result = powr_mod.fit(fden_interp, parms, x=dur_day_interp)
-    #     parm_result = model_result.best_values
-
-    #     fden_fit_interp = model_result.eval(x=whole_domain,
-    #                                         powr_amplitude=parm_result["powr_amplitude"],
-    #                                         powr_exponent=parm_result["powr_exponent"])
-    # if which_mod == 3:
-    #     print("Logist-Exponential Fit Chosen")
-    #     # class LinearModel = f(x; m,b)= mx + b
-    #     step_mod = lmfit.models.StepModel(form='logistic', prefix='step_')
-    #     # line_mod = lmfit.models.LinearModel(prefix='line_')
-    #     powr_mod = lmfit.models.PowerLawModel(prefix='powr_')
-
-    #     # parms = line_mod.make_params(intercept=fden_interp.min(), slope=0.1)
-    #     parms = powr_mod.make_params(powr_amplitude=0.05, powr_exponent=0.1)
-    #     parms += step_mod.make_params(step_center=2.09, step_amplitude=0.1,
-    #                                   step_sigma=1e-4)
-    #     # parms += step_mod.guess(fden_interp, x=dur_day_interp,
-    #     #                         step_center=2.09, step_amplitude=0.7)
-    #     powrStep_mod = step_mod + powr_mod  # COMBINE THE TWO MODELS
-
-    #     model_result = powrStep_mod.fit(fden_interp, parms, x=dur_day_interp)
-    #     parm_result = model_result.best_values
-
-    #     fden_fit_interp = model_result.eval(x=whole_domain,
-    #                                         step_amplitude=parm_result["step_amplitude"],
-    #                                         step_center=parm_result["step_center"],
-    #                                         step_sigma=parm_result["step_sigma"],
-    #                                         powr_amplitude=parm_result["powr_amplitude"],
-    #                                         powr_exponent=parm_result["powr_exponent"])
     # if which_mod == 4:
     #     print("Logist (3 param) Fit Chosen")
     #     # class LinearModel = f(x; m,b)= mx + b
@@ -385,20 +354,26 @@ def column_idx(testname_str):
       - the .csv file is a direct copy of the "FmtData" worksheet in Excel
     """
     print("Test Name: " + testname_str)
-    if testname_str == '175_09':
+    if testname_str == '175_01':
         col_time = 1  # Excel Time Column (days)
-        col_temp = 8
-        col_pcon = 2
-        col_ppor = 14
-        col_fden = 31
+        col_temp = 13  # confining fluid temperature (C)
+        col_pcon = 3  # confining pressure (psi)
+        col_ppor = 0  # pore pressure - none for this test
+        col_fden = 38  # calculated fractional density (no Schuler Gauges)
+    elif testname_str == '175_03':
+        col_time = 1  # Excel Time Column (days)
+        col_temp = 15  # confining fluid temperature (C)
+        col_pcon = 5  # confining pressure (psi)
+        col_ppor = 0  # pore pressure - none for this test
+        col_fden = 37  # calculated fractional density
     elif testname_str == '175_04':
         col_time = 1  # Excel Time Column (days)
         col_temp = 13
         col_pcon = 3
         col_ppor = 0
         col_fden = 34
-    elif testname_str == '175_09_comp':
-        col_time = 1
+    elif testname_str == '175_09':
+        col_time = 1  # Excel Time Column (days)
         col_temp = 8
         col_pcon = 2
         col_ppor = 14
@@ -408,12 +383,13 @@ def column_idx(testname_str):
     return col_time, col_temp, col_pcon, col_ppor, col_fden
 
 
-# def plot_elastic(dur_day_interp, fden_interp,
-#                  font_size=14, fig_width=13, fig_height=10):
-#     """
-#     plotting function used for plotting the loading "elastic" stage
-#     """
-#     FIG1 = plt.figure(figsize=(fig_width, fig_height))
+# def plot_func(num_plot,
+#               p1x, p1y, p2x, p2y, p3x, p3y,
+#               l1x='plt 1: x lbl', l1y, l2x, l2y, l3x, l3y,
+#               leg1, leg1r, leg2, leg2r, leg3, leg3r):
+
+#               p1yr=None, p2yr=None, p3yr=None):
+#     FIG1 = plt.figure(figsize=(13, 10))
 
 #     AX1 = FIG1.add_subplot(311)
 #     AX1.set_title("Test: " + FOLDER_DIR, fontsize=18)
@@ -455,8 +431,8 @@ def column_idx(testname_str):
 #     AX2.grid(True)
 #     AX2.set_ylabel('Volume Strain', fontsize=FS)
 #     AX2.set_xlabel("Confining Pressure (MPa)", fontsize=FS, labelpad=0)
-
 #     AX2.legend(LBL_STRN, frameon=1, framealpha=0.75, loc=4, fontsize=FS)
+#     # AX2B.legend(LBL_INTERVAL, frameon=1, framealpha=0.85, loc=4, fontsize=FS)
 
 #     AX2.tick_params(labelsize=FS)
 #     AX2.tick_params(labelsize=FS, pad=10)
@@ -464,21 +440,32 @@ def column_idx(testname_str):
 #     #################################
 #     LBL_STRN_RATE = ["Volumetric Strain Rate"]
 #     LBL_COMP = ["Drained"]
-#     print(FIT_FDEN_INTERP.shape)
-#     print(VSTRN_RATE_FIT_INTERP.shape)
 
 #     AX3 = FIG1.add_subplot(313)
-#     AX3.semilogy(FDEN_FIT_INTERP, VSTRN_RATE_FIT_INTERP, linestyle='-',
+#     if FIT_TYPE == 0:  # INITIAL LOADING
+#         AX3.semilogy(FDEN_FIT_INTERP, VSTRN_RATE_FIT_INTERP, linestyle='-',
+#                      linewidth=2, marker='.', markersize=4,
+#                      color='m', alpha=0.75)
+
+#         AX3A = AX3.twinx()
+#         AX3A.semilogy(FDEN_FIT_INTERP, BULK_DRAINED_FIT_INTERP, linestyle='-',
+#                       linewidth=2, marker='s', markersize=4,
+#                       color='c', alpha=0.75)
+#     elif FIT_TYPE == 2:  # UNLOADING
+#         AX3.plot(FDEN_FIT_INTERP, VSTRN_RATE_FIT_INTERP, linestyle='-',
 #                  linewidth=2, marker='.', markersize=4,
 #                  color='m', alpha=0.75)
-#     AX3.grid(True)
-#     AX3.set_ylabel(r'Strain Rate ($\frac{1}{sec}$)', fontsize=FS)
 
-#     AX3A = AX3.twinx()
-#     AX3A.semilogy(FDEN_FIT_INTERP, COMP_DRAINED_FIT_INTERP, linestyle='-',
+#         AX3A = AX3.twinx()
+#         AX3A.plot(FDEN_FIT_INTERP, BULK_DRAINED_FIT_INTERP, linestyle='-',
 #                   linewidth=2, marker='s', markersize=4,
 #                   color='c', alpha=0.75)
-#     AX3A.set_ylabel(r'Compressibility ($\frac{1}{MPa}$)', fontsize=FS)
+#         Y_FMT = FormatStrFormatter('%2.1e')
+#         AX3.yaxis.set_major_formatter(Y_FMT)
+#     AX3.grid(True)
+#     AX3.set_ylabel(r'Strain Rate $\left( \frac{1}{sec} \right)$', fontsize=FS)
+#     AX3A.set_ylabel(r'Bulk Modulus (MPa)',
+#                     fontsize=FS)
 #     AX3A.tick_params(labelsize=FS)
 
 #     AX3.legend(LBL_STRN_RATE, frameon=1, framealpha=.85, loc=3, fontsize=FS)
@@ -490,5 +477,5 @@ def column_idx(testname_str):
 #     AX3.tick_params(labelsize=FS, pad=10)
 
 #     # adjust spacing around subplots
-#     FIG1.subplots_adjust(left=0.1, right=0.925, bottom=0.06, top=0.95, wspace=0.2, hspace=0.25)
-
+#     FIG1.subplots_adjust(left=0.1, right=0.925, bottom=0.06, top=0.95,
+#                          wspace=0.2, hspace=0.25)

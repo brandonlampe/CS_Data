@@ -19,37 +19,54 @@ REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 # CHOOSE ANALYSIS OPTIONS (INTEGER VALUES)
 ##################################
 RUN_FIT_FDEN = 1  # SHOULD THE FIT TO FDEN BE CALCULATED
-FIT_CREEP = 1  # FIT DATA AGAINST TIME, ELSE VSTRN WILL BE FIT TO PRESSURE
+
+# 0 => VSTRN WILL BE FIT TO PRESSURE (LOADING)
+# 1 => FIT AGAINST TIME (CREEP)
+# 2 => VSTRN FIT AGAINST PRESSURE (UNLOADING)
+FIT_TYPE = 1
+
 # TO FIT A PORTION OF THE ENTIRED DOMAIN, CHOOSE ALTDOMINE_FIT_FDEN = 1
 ALTDOMAIN_FIT_FDEN = 1  # FIT FDEN TO AN ALTERNATE DOMAIN THAN DEFINED BY
-MODEL_TYPE = 2  # need to write summary of model types (1-Gomopertz, 2-Schnute)
-PLOT = 0  # SHOULD THE RESULTS BE PLOTTED
-SAVEFIG = 0  # SHOULD THE PLOTS BE SAVED
+
+# 1 => Gomopertz (typically loading)
+# 2 => Schnute  (typically creep)
+# 3 => lineaer equation (typically unloading)
+MODEL_TYPE = 2
+
+PLOT = 1  # SHOULD THE RESULTS BE PLOTTED
+SAVEFIG = 1  # SHOULD THE PLOTS BE SAVED
 SAVECSV = 1  # SHOULD A .CSV OF THE RESULTS BE SAVED
-PLOT_FITDATA = 0  # SHOULD RESIDUALS OF THE FIT BE PRINTED
+PLOT_FITDATA = 1  # SHOULD RESIDUALS OF THE FIT BE PRINTED
 PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
-STAGE_ID = '_CREEP'  # '_Stage01'  # IF TEST CONSISTS OF MULTIPLE STAGES
-ADJUST_FOR_TEMP = 1  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
+STAGE_ID = ''  # '_Stage01' , FOR MULTI-STAGE TESTS
+ADJUST_FOR_TEMP = 0  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
 
 # IF RESULTS FROM CS MODEL ARE TO BE PLOTTED ALSO, DEFINE PATH TO DATA
 PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
              'UNM_WP_HY_175_04_OUT' + '.csv'
 
-DUR_START = 2.096  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-DUR_END = 19.9  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-FIT_START = 2.096  # START FITTING
-FIT_END = 6  # END FITTING
+DUR_START = 0.0035  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_END = 0.845  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+FIT_START = 0.0035  # START FITTING
+FIT_END = 0.845  # END FITTING
+
+# TEST DETAILS
+ADDED_WATER = 0.0  # PERCENT BY WEIGHT
+MEAN_PARTICLE_SIZE = 2.34  # millimeters
 
 # interpolation spacing
 INTERP_INC = 10  # SECONDS, SIZE OF INTERPOLATION INCREMENT
 
+# COMPLETED TESTS
+# FOLDER_DIR = 'UNM_WP_HY_175_04'
+# FOLDER_DIR = 'UNM_WP_HY_175_03'
+
+# NOT COMPLETED TESTS
 # FOLDER_DIR = 'UNM_WP_HY_90_02'
 # FOLDER_DIR = 'UNM_WP_HY_90_03'
 # FOLDER_DIR = 'UNM_WP_HY_90_04'
 # FOLDER_DIR = 'UNM_WP_HY_90_08'
-# FOLDER_DIR = 'UNM_WP_HY_175_01'
-# FOLDER_DIR = 'UNM_WP_HY_175_03'
-FOLDER_DIR = 'UNM_WP_HY_175_04'
+FOLDER_DIR = 'UNM_WP_HY_175_01'
 # FOLDER_DIR = 'UNM_WP_HY_175_09'
 
 # load tests data - .csv file that has been exported directly from .xlsx
@@ -156,11 +173,13 @@ PPOR_AVG_PSI = np.mean(PPOR_INTERP) * 145
 PPOR_AVG_MPA = np.mean(PPOR_INTERP)
 TEMP_AVG_C = np.mean(TEMP_INTERP)
 
-print("Avg. Confining Pressure (MPa): " + str(PCON_AVG_MPA))
-print("Avg. Pore Pressure (MPa): " + str(PPOR_AVG_MPA))
-print("Avg. Confining Pressure (psi): " + str(PCON_AVG_PSI))
-print("Avg. Pore Pressure (psi): " + str(PPOR_AVG_PSI))
-print('Avg. Temperature (C): ' + str(TEMP_AVG_C))
+if FIT_TYPE == 1:  # CREEP
+    TEST_SPEC = {}
+    TEST_SPEC["percent added water by weight"] = ADDED_WATER
+    TEST_SPEC["mean particle size"] = MEAN_PARTICLE_SIZE
+    TEST_SPEC["average temperature"] = TEMP_AVG_C
+    TEST_SPEC["average confining pressure"] = PCON_AVG_MPA
+    TEST_SPEC["average pore pressure"] = PPOR_AVG_MPA
 
 # calculated volume strain rate by fitting model to fractional density
 FDEN0 = FDEN_INTERP[0]  # INITIAL FRACTIONAL DENSITY
@@ -182,7 +201,7 @@ DELTA_DENSITY_INTERP = np.gradient(DENISTY_INTERP)
 COMP_DRAINED_INTERP = DENISTY_INTERP * DELTA_PCON_INTERP / DELTA_DENSITY_INTERP
 
 if RUN_FIT_FDEN == 1:
-    if FIT_CREEP == 1:  # fit fden agains time, creep
+    if FIT_TYPE == 1:  # fit fden agains time, creep
         if ALTDOMAIN_FIT_FDEN == 1:
             FIT_DOMAIN = FIT_DUR_DAY_INTERP
             FIT_RANGE = FIT_FDEN_INTERP
@@ -194,7 +213,19 @@ if RUN_FIT_FDEN == 1:
             dur_day_interp=FIT_DOMAIN,
             which_mod=MODEL_TYPE,
             whole_domain=DUR_DAY_INTERP)
-    else:  # fit fden against pressure, load-up
+    elif FIT_TYPE == 0:  # fit fden against pressure, load-up
+        if ALTDOMAIN_FIT_FDEN == 1:
+            FIT_DOMAIN = FIT_PCON_INTERP
+            FIT_RANGE = FIT_FDEN_INTERP
+        else:
+            FIT_DOMAIN = PCON_INTERP
+            FIT_RANGE = FDEN_INTERP
+        FDEN_FIT_INTERP, MODEL, DES_STR = daf.fit_fden(
+            fden_interp=FIT_RANGE,
+            dur_day_interp=FIT_DOMAIN,
+            which_mod=MODEL_TYPE,
+            whole_domain=PCON_INTERP)
+    elif FIT_TYPE == 2:  # fit fden against pressure, UNLOADING
         if ALTDOMAIN_FIT_FDEN == 1:
             FIT_DOMAIN = FIT_PCON_INTERP
             FIT_RANGE = FIT_FDEN_INTERP
@@ -219,7 +250,7 @@ if RUN_FIT_FDEN == 1:
     print("Scaled Error Norm of Fit: " + str(FIT_RESID_NORM))
 
     if PLOT_FITDATA == 1:
-        if FIT_CREEP == 1:  # data was fit agains time
+        if FIT_TYPE == 1:  # data was fit agains time (creep)
             FIG0, FITPLOT = plt.subplots(2, figsize=(13, 8), sharex=True)
             FITPLOT[0].set_title("Test: " + FOLDER_DIR, fontsize=18)
             FITPLOT[0].plot(DUR_DAY_INTERP, FIT_RESID, 'b.-')
@@ -234,7 +265,7 @@ if RUN_FIT_FDEN == 1:
             FITPLOT[1].set_ylabel("Fractional Density")
             FITPLOT[1].set_xlabel("Test Duration (day)")
             FITPLOT[1].legend(LBL_FIT, loc=0)
-        else:  # data was fit against pressure
+        elif FIT_TYPE != 1:  # data was fit against pressure (load or unload)
             FIG0, FITPLOT = plt.subplots(2, figsize=(13, 8), sharex=True)
             FITPLOT[0].set_title("Test: " + FOLDER_DIR +
                                  " (During Pressure Change)", fontsize=18)
@@ -248,9 +279,8 @@ if RUN_FIT_FDEN == 1:
             FITPLOT[1].plot(FIT_DOMAIN, FIT_RANGE, 'r.-')
             FITPLOT[1].grid()
             FITPLOT[1].set_ylabel("Fractional Density")
-            FITPLOT[1].set_xlabel("CONFINING PRESSURE (MPa)")
+            FITPLOT[1].set_xlabel("Confining Pressure (MPa)")
             FITPLOT[1].legend(LBL_FIT, loc=0)
-
         if PLOT == 0:
             plt.show()
 
@@ -263,6 +293,7 @@ if RUN_FIT_FDEN == 1:
     BULK_DRAINED_FIT_INTERP = DENISTY_FIT_INTERP * (DELTA_PCON_INTERP /
                                                     DELTA_DENSITY_FIT_INTERP)
     COMP_DRAINED_FIT_INTERP = BULK_DRAINED_FIT_INTERP**(-1)
+
 else:  # returns null vectors for fits
     FDEN_FIT_INTERP = np.zeros(len(DUR_SEC_INTERP))
     VSTRN_FIT_INTERP = np.zeros(len(DUR_SEC_INTERP))
@@ -347,7 +378,7 @@ NUM_SUBPLOT = 3
 # ######################################################################
 # PLOTTING FOR CREEP ONLY
 # ######################################################################
-if FIT_CREEP == 1:
+if FIT_TYPE == 1:
     FIG1, AXARR = plt.subplots(NUM_SUBPLOT, figsize=(13, 10), sharex=True)
     AXARR[0].set_title("Test: " + FOLDER_DIR,
                        fontsize=18)
@@ -457,7 +488,7 @@ if FIT_CREEP == 1:
 # ######################################################################
 # PLOTTING DURING LOAD UP ONLY BELOW
 # ######################################################################
-if FIT_CREEP == 0:
+if FIT_TYPE == 0:  # for loading or unloading
     FIG1 = plt.figure(figsize=(13, 10))
 
     AX1 = FIG1.add_subplot(311)
@@ -509,45 +540,131 @@ if FIT_CREEP == 0:
     #################################
     LBL_STRN_RATE = ["Volumetric Strain Rate"]
     LBL_COMP = ["Drained"]
-    print(FIT_FDEN_INTERP.shape)
-    print(VSTRN_RATE_FIT_INTERP.shape)
 
     AX3 = FIG1.add_subplot(313)
     AX3.semilogy(FDEN_FIT_INTERP, VSTRN_RATE_FIT_INTERP, linestyle='-',
                  linewidth=2, marker='.', markersize=4,
                  color='m', alpha=0.75)
+
+    # AX3A = AX3.twinx()
+    # AX3A.semilogy(FDEN_FIT_INTERP, BULK_DRAINED_FIT_INTERP, linestyle='-',
+    #               linewidth=2, marker='s', markersize=4,
+    #               color='c', alpha=0.75)
     AX3.grid(True)
     AX3.set_ylabel(r'Strain Rate $\left( \frac{1}{sec} \right)$', fontsize=FS)
+    # AX3A.set_ylabel(r'Bulk Modulus (MPa)',
+    #                 fontsize=FS)
+    # AX3A.tick_params(labelsize=FS)
 
-    AX3A = AX3.twinx()
-    AX3A.semilogy(FDEN_FIT_INTERP, COMP_DRAINED_FIT_INTERP, linestyle='-',
-                  linewidth=2, marker='s', markersize=4,
-                  color='c', alpha=0.75)
-    AX3A.set_ylabel(r'Compressibility $\left( \frac{1}{MPa} \right)$',
-                    fontsize=FS)
-    AX3A.tick_params(labelsize=FS)
-
-    AX3.legend(LBL_STRN_RATE, frameon=1, framealpha=.85, loc=3, fontsize=FS)
-    AX3A.legend(LBL_COMP, frameon=1, framealpha=0.85, loc=4, fontsize=FS)
+    AX3.legend(LBL_STRN_RATE, frameon=1, framealpha=.85, loc=0, fontsize=FS)
+    # AX3A.legend(LBL_COMP, frameon=1, framealpha=0.85, loc=4, fontsize=FS)
 
     AX3.tick_params(labelsize=FS)
     AX3.tick_params(labelsize=FS, pad=10)
     AX3.set_xlabel("Fractional Density", fontsize=FS, labelpad=0)
     AX3.tick_params(labelsize=FS, pad=10)
 
+    FIG1.subplots_adjust(left=0.1, right=0.925, bottom=0.06, top=0.95,
+                         wspace=0.2, hspace=0.3)
+# ######################################################################
+# PLOTTING DURING unloading ONLY BELOW
+# ######################################################################
+if FIT_TYPE == 2:  # for unloading
+    FIG1 = plt.figure(figsize=(13, 10))
+
+    AX1 = FIG1.add_subplot(311)
+    AX1.set_title("Test: " + FOLDER_DIR  + " (Unloading)", fontsize=18)
+    LBL_FDEN = ["Fractional Density: Measure", "Fractional Denisty: Fit"]
+    LBL_PRES = ["Confining Pressure"]
+    AX1.plot(DUR_DAY_INTERP, FDEN_INTERP, linestyle='-', linewidth=1,
+             marker='.', markersize=4, color='y', alpha=1)
+    if RUN_FIT_FDEN == 1:
+        AX1.plot(DUR_DAY_INTERP, FDEN_FIT_INTERP, linestyle='-',
+                 linewidth=2, marker='o', markersize=1, color='b',
+                 alpha=.5)
+    AX1.grid(True)
+
+    AX1A = AX1.twinx()
+    AX1A.plot(DUR_DAY_INTERP, PCON_INTERP, linestyle='-',
+              linewidth=1, marker='s', markersize=4, color='r',
+              alpha=1)
+    AX1A.set_ylabel("Pressure (MPa)", fontsize=FS)
+    AX1A.tick_params(labelsize=FS)
+
+    AX1.tick_params(labelsize=FS, pad=10)
+
+    AX1.legend(LBL_FDEN, frameon=1, framealpha=1, loc=1, fontsize=FS)
+    AX1A.legend(LBL_PRES, frameon=1, framealpha=1, loc=3, fontsize=FS)
+    AX1.set_ylabel("Fractional Density", fontsize=FS)
+    AX1.set_xlabel("Duration (days)", fontsize=FS, labelpad=0)
+
+    #################################
+    LBL_BULK = ["Bulk Modulus: Drained"]
+    LBL_FDEN = ["Fractional Density: Fit"]
+    AX2 = FIG1.add_subplot(312)
+    AX2.plot(PCON_INTERP, BULK_DRAINED_FIT_INTERP, linestyle='-',
+             linewidth=2, marker='o', markersize=1,
+             color='darkorange', alpha=1)
+    AX2A = AX2.twinx()
+    AX2A.plot(PCON_INTERP, FDEN_FIT_INTERP, linestyle='-',
+              linewidth=2, marker='.', markersize=4,
+              color='b', alpha=0.5)
+    AX2.grid(True)
+    AX2.set_ylabel('Bulk Modulus (MPa)', fontsize=FS)
+    AX2A.set_ylabel('Fractional Density', fontsize=FS)
+    AX2.set_xlabel("Confining Pressure (MPa)", fontsize=FS, labelpad=0)
+    AX2.legend(LBL_BULK, frameon=1, framealpha=0.75, loc=2, fontsize=FS)
+    AX2A.legend(LBL_FDEN, frameon=1, framealpha=0.85, loc=4, fontsize=FS)
+
+    AX2.tick_params(labelsize=FS, pad=10)
+    #################################
+    LBL_BULK = ["Bulk Modulus: Drained"]
+
+    AX3 = FIG1.add_subplot(313)
+    AX3.plot(FDEN_FIT_INTERP, BULK_DRAINED_FIT_INTERP, linestyle='-',
+             linewidth=2, marker='.', markersize=4,
+             color='darkorange', alpha=1)
+
+    # AX3A = AX3.twinx()
+    # AX3A.plot(FDEN_FIT_INTERP, BULK_DRAINED_FIT_INTERP, linestyle='-',
+              # linewidth=2, marker='s', markersize=4,
+              # color='c', alpha=0.75)
+    # Y_FMT = FormatStrFormatter('%2.1e')
+    # AX3.yaxis.set_major_formatter(Y_FMT)
+    AX3.grid(True)
+    AX3.set_ylabel("Bulk Modulus (MPa)", fontsize=FS)
+    # AX3A.set_ylabel(r'Bulk Modulus (MPa)',
+                    # fontsize=FS)
+
+    AX3.legend(LBL_BULK, frameon=1, framealpha=.85, loc=2, fontsize=FS)
+    AX3.set_xlabel("Fractional Density", fontsize=FS, labelpad=0)
+    AX3.tick_params(labelsize=FS, pad=10)
+
     # adjust spacing around subplots
-    FIG1.subplots_adjust(left=0.1, right=0.925, bottom=0.06, top=0.95, wspace=0.2, hspace=0.25)
+    FIG1.subplots_adjust(left=0.1, right=0.925, bottom=0.06, top=0.95,
+                         wspace=0.2, hspace=0.3)
 #################################
 if RUN_FIT_FDEN == 1:  # modify directory where files are saved
-    if FIT_CREEP == 1:
-        ADD_DIR = 'CREEP_FIT/'
-    elif FIT_CREEP == 0:
+    if FIT_TYPE == 0:
         ADD_DIR = 'LOADING_FIT/'
+    elif FIT_TYPE == 1:
+        ADD_DIR = 'CREEP_FIT/'
+    elif FIT_TYPE == 2:
+        ADD_DIR = 'UNLOADING_FIT/'
     else:
         ADD_DIR = ''
 
-FIG0_NAME = TEST_NAME + STAGE_ID + "_PLOTS_RESID.pdf"
-FIG1_NAME = TEST_NAME + STAGE_ID + "_PLOTS.pdf"
+if FIT_TYPE == 0:
+    FIT_ID = '_LOAD'
+elif FIT_TYPE == 1:
+    FIT_ID = '_CREEP'
+elif FIT_TYPE == 2:
+    FIT_ID = '_UNLOAD'
+else:
+    FIT_ID = ''
+
+FIG0_NAME = TEST_NAME + STAGE_ID + FIT_ID + "_PLOTS_RESID.pdf"
+FIG1_NAME = TEST_NAME + STAGE_ID + FIT_ID + "_PLOTS.pdf"
 PATH = REPO_DIR + '/' + FOLDER_DIR + '/'
 
 if SAVEFIG != 0:
@@ -557,11 +674,13 @@ if SAVEFIG != 0:
     print("Figure Saved As: " + FIG1_NAME)
 if SAVECSV != 0:
     # SAVE RESULTS TO .CSV FILE
-    OUT_FILENAME = PATH + ADD_DIR + TEST_NAME + STAGE_ID + '_OUT.csv'
-    OUT_FILENAME_REPORT = PATH + ADD_DIR + TEST_NAME + STAGE_ID +\
+    OUT_FILENAME = PATH + ADD_DIR + TEST_NAME + STAGE_ID + FIT_ID + '_OUT.csv'
+    OUT_FILENAME_REPORT = PATH + ADD_DIR + TEST_NAME + STAGE_ID + FIT_ID +\
         '_FITREPORT.csv'
-    OUT_FILENAME_PARM = PATH + ADD_DIR + TEST_NAME + STAGE_ID + '_PARM.bin'
-
+    OUT_FILENAME_PARM = PATH + ADD_DIR + TEST_NAME + STAGE_ID + FIT_ID +\
+        '_PARM.bin'
+    OUT_FILENAME_SPEC = PATH + ADD_DIR + TEST_NAME + STAGE_ID + FIT_ID +\
+        '_SPEC.bin'
     # HEADER = "Interpolated Data For Test: " + str(TEST_NAME) + "/n"
     LINE00 = "Analysis by Brandon Lampe, performed on: " +\
              datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S').rstrip('0')
@@ -592,9 +711,27 @@ if SAVECSV != 0:
         LINE16 = 'Model was fit to the following domain (x) -> Duration (days)'
         LINE17 = 'Start, ' + str(FIT_START)
         LINE18 = 'End, ' + str(FIT_END)
-        FIT_REPORT = '\n'.join([LINE10, BLANK, LINE11, LINE12, BLANK, LINE13,
-                                BLANK, LINE14, LINE15, LINE16, LINE17,
-                                LINE18, BLANK])
+        LINE19 = 'Raw data was interpolated every ' + str(INTERP_INC) + ' sec.'
+
+        if FIT_TYPE == 2:  # UNLOADING TO FIND BULK MODULUS
+            FDEN_AVG = np.mean(FDEN_FIT_INTERP)
+            BULK_MOD_AVG = np.mean(BULK_DRAINED_FIT_INTERP)
+            LINE20 = 'Average Confining Pressure (MPa): ' + str(PCON_AVG_MPA)
+            LINE21 = 'Average Pore Pressure (MPa): ' + str(PPOR_AVG_MPA)
+            LINE22 = 'Average Fractional Density: ' + str(FDEN_AVG)
+            LINE23 = 'Average Temperature (C): ' + str(TEMP_AVG_C)
+            LINE24 = 'Average Bulk Modulus (MPa): ' + str(BULK_MOD_AVG)
+            FIT_REPORT = '\n'.join([LINE10, BLANK, LINE11, LINE12, BLANK,
+                                    LINE13,
+                                    BLANK, LINE14, LINE15, LINE16, LINE17,
+                                    LINE18, BLANK, LINE19, BLANK, LINE20,
+                                    LINE21, LINE22, LINE23, LINE24, BLANK])
+            print(LINE24)
+        else:
+            FIT_REPORT = '\n'.join([LINE10, BLANK, LINE11, LINE12, BLANK,
+                                    LINE13,
+                                    BLANK, LINE14, LINE15, LINE16, LINE17,
+                                    LINE18, BLANK, LINE19, BLANK])
         OUT = open(OUT_FILENAME_REPORT, 'w')
         OUT.write(FIT_REPORT)
 
@@ -602,11 +739,16 @@ if SAVECSV != 0:
         with open(OUT_FILENAME_PARM, 'wb') as handle:
             pickle.dump(MODEL.best_values, handle)
 
-        # read parameter values from pickled file
-        with open(OUT_FILENAME_PARM, 'rb') as handle:
-            TEST_READ = pickle.loads(handle.read())
+        if FIT_TYPE == 1:
+            with open(OUT_FILENAME_SPEC, 'wb') as handle:
+                pickle.dump(TEST_SPEC, handle)
+
+        # # read parameter values from pickled file
+        # with open(OUT_FILENAME_PARM, 'rb') as handle:
+        #     TEST_READ = pickle.loads(handle.read())
 
         print("Saved Fit Report As: " + OUT_FILENAME_REPORT)
         print("Saved Parameters As: " + OUT_FILENAME_PARM)
+        print("Saved Test Specification As: " + OUT_FILENAME_SPEC)
 if PLOT != 0:
     plt.show()

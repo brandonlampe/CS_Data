@@ -1,0 +1,39 @@
+Analysis by Brandon Lampe, performed on: 2016/07/02 12:43:4
+
+The following model was used to fit the fractional density:
+def gompertz(x, intercept, start, a, b, c):
+    fden = intercept + a * exp(-exp(b - c * (x - start)))
+    return fden
+
+Scaled Error Norm: 0.00469207978646
+
+Fit Report (from LMFIT):
+[[Model]]
+    Model(_eval)
+[[Fit Statistics]]
+    # function evals   = 146
+    # data points      = 30
+    # variables        = 4
+    chi-square         = 0.000
+    reduced chi-square = 0.000
+    Akaike info crit   = -404.852
+    Bayesian info crit = -399.247
+[[Variables]]
+    a:           0.09257653 +/- 0.002689 (2.91%) (init= 5)
+    start:       0.1284111 (fixed)
+    c:           0.22110995 +/- 0.009670 (4.37%) (init= 1)
+    intercept:   0.79903968 +/- 0.000364 (0.05%) (init= 0.6)
+    b:           2.94709689 +/- 0.103477 (3.51%) (init= 1)
+[[Correlations]] (unreported correlations are <  0.100)
+    C(c, b)                      =  0.983 
+    C(a, c)                      = -0.953 
+    C(a, b)                      = -0.903 
+    C(intercept, b)              =  0.531 
+    C(a, intercept)              = -0.448 
+    C(c, intercept)              =  0.442 
+
+Model was fit to the following domain (x) -> Duration (days)
+Start, 0.0002
+End, 0.0036
+
+Raw data was interpolated every 10 sec.

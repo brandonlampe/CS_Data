@@ -1,9 +1,20 @@
-# Comments for test: 175_04
+# Comments For Consolidation Test: 175_04
+_Note:_ herein, the phrase "TEST-NUMBER" will imply the insertion of "175_04".  This format will
+often be used when describing local directories.
+
 Following the initial increase in pressure from zero to 20 MPa, the Schuler gauges stopped working.
-Therefore, volume deformation was measured using an Isco pump.  However, fluid temperature
-and system tightness influence the volume deformation measurements made with the Isco pump.
-Because of these influences, corrections have been made to account for variation of the
-confining fluid temperature and for observed leaks in the system.
+Therefore, volume deformation was measured using an Isco pump.  However, fluid temperature influence
+the volume deformation measurements when made with the Isco pump (i.e., measured via metering
+fluid). Also, a small and persistent leak from the Isco Pump was observed from test duration days
+6 through 14. Because of these influences in the volume measurement, corrections were made to
+account for variation of the confining fluid temperature and for observed leaks in the system.
+
+## Test Data
+Raw test data is contained in: TEST-NUMBER.xlsx
+
+Additionally, calculated values of fractional density have been calculated in TEST-NUMBER.xlsx and
+exported to TEST-NUMBER.csv, where the .csv file format allows for easy cross-platform importing
+and analysis.
 
 ## Temperature Adjustment
 A modification factor was applied to the fractional density.
@@ -16,11 +27,36 @@ fractional density.
 
 
 ## Fit Types
+To allow for the calculation of derivatives from test data, analytical expressions were fit to the
+test data.  Unique analytical expressions were fit to the loading, creep, and unloading portions of
+the consolidation test.
 
-Stage 1
-- From 2.09 to 2.9 days
-- Logistic + Exponential
+### Loading
+- An analytical expression was fit to the calculated fractional density with respect to confining
+pressure.
+- A summary of the fit to the loading stage has been in the LOADING_FIT directory, with the file
+name: TEST-NUMBER_ LOAD_FITREPORT.csv
+- All data of the fit to the loading stage has been in the LOADING_FIT directory, with the file
+name: TEST-NUMBER_ LOAD_OUT.csv
 
-Stage 2
-- From 2.9 through 19.9 days
-- Exponential
+### Creep
+- A summary of the fit to the creep stage has been in the CREEP_FIT directory, with the file
+name: TEST-NUMBER_ CREEP_FITREPORT.csv
+- All data of the fit to the creep (constant pressure) stage has been in the CREEP_FIT directory,
+with the file name: TEST-NUMBER_ CREEP_OUT.csv
+
+### Unloading
+- Sufficient data was not available for an analysis of sample deformation during unloading.
+
+## Final Results
+- The final fit results, which include the fractional density and strain rate calculations, are
+contained in the directory labeled FINAL.  Test results stored in this directory have been developed
+such that they may be used to make plotting the data convienent, as the files only contain a couple
+thousand measurements.  __Note:__ files ending with _.npy_ are binary Numpy arrays of the data.
+- These results have been seperated into the following categories:
+    + LOAD
+    + CREEP
+    + UNLOAD
+    + COMB
+- The files ending with LOAD, CREEP, and UNLOAD contain the data for the respetive part of the test.
+- The files ending with COMB contain the combined data of all tests parts.

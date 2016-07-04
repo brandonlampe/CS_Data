@@ -1,4 +1,4 @@
-Analysis by Brandon Lampe, performed on: 2016/06/26 18:23:25
+Analysis by Brandon Lampe, performed on: 2016/06/28 15:18:37
 
 The following model was used to fit the fractional density:
 def schnute(x, start, end, a, b, c, d):
@@ -35,3 +35,5 @@ Fit Report (from LMFIT):
 Model was fit to the following domain (x) -> Duration (days)
 Start, 2.096
 End, 6
+
+Raw data was interpolated every 10 sec.

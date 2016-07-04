@@ -16,12 +16,21 @@ A uniform namining is structure still in progress.  Tests completed early in the
   + `Test Type` $implies$ HY = Hydrostatic Consolidation, TX = Traditional Triaxial Consolidation
   + `Test Temperature` $\implies$ approximate confining fluid temperature (degrees Celsius)
   + `Number in Series` $\implies$ the chronogical order of tests performed with the same `Salt Location`, `Test Type`, and `Test Temperature`
-    
+
 ## Crushed Salt Testing
 The bulk of current repo contents are tests on crushed salt performed at Sandia National Laboratory in Albuquerque, NM.  Future contents of this repository include:
  - Photographs of crushed salt samples (pre and post testing)
  - Permeability test results
  - Thermalconductivity test results
  - Porosity test results
+
+## Analysis Programs
+All analysis programs were written using Python 2.7 and are saved in the "/PythonCode" directory.
+
+### Listing of Programs
+- DataAnalysis.py
+- DataAnalysisFunc.py
+- TempInfluence.py
+
 
 
