@@ -18,6 +18,9 @@ REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 ##################################
 # CHOOSE ANALYSIS OPTIONS (INTEGER VALUES)
 ##################################
+# -1 => ALLOWS FOR PLOTTING & SAVING DATA WITH NO FIT
+#  0 => ALLOWS FOR PLOTTING DATA BUT NOT SAVING WITH NO FIT
+#  1 => PLOT AND SAVE DATA WITH CHOSEN FIT
 RUN_FIT_FDEN = 1  # SHOULD THE FIT TO FDEN BE CALCULATED
 
 # 0 => VSTRN WILL BE FIT TO PRESSURE (LOADING)
@@ -31,24 +34,24 @@ ALTDOMAIN_FIT_FDEN = 0  # FIT FDEN TO AN ALTERNATE DOMAIN THAN DEFINED BY
 # 1 => Gomopertz (typically loading)
 # 2 => Schnute  (typically creep)
 # 3 => lineaer equation (typically unloading)
-MODEL_TYPE = 2
+MODEL_TYPE = 3
 
-PLOT = 1  # SHOULD THE RESULTS BE PLOTTED
+PLOT = 1  # SHOULD THE RESULTS BE PLOTTED175_09
 SAVEFIG = 1  # SHOULD THE PLOTS BE SAVED
 SAVECSV = 1  # SHOULD A .CSV OF THE RESULTS BE SAVED
 PLOT_FITDATA = 1  # SHOULD RESIDUALS OF THE FIT BE PRINTED
 PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
-STAGE_ID = '_STAGE05'  # '_Stage01' , FOR MULTI-STAGE TESTS
-ADJUST_FOR_TEMP = 0  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
+STAGE_ID = '_STAGE18'  # '_STAGE01' , FOR MULTI-STAGE TESTS
+ADJUST_FOR_TEMP = 1  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
 
 # IF RESULTS FROM CS MODEL ARE TO BE PLOTTED ALSO, DEFINE PATH TO DATA
 PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
              'UNM_WP_HY_175_04_OUT' + '.csv'
 
-DUR_START = 3.988  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-DUR_END = 4.995  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-FIT_START = 0.98  # START FITTING
-FIT_END = 2.018  # END FITTING
+DUR_START = 23.25  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_END = 26.0  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+FIT_START = 5.005  # START FITTING
+FIT_END = 5.99  # END FITTING
 
 # TEST DETAILS
 ADDED_WATER = 0.0  # PERCENT BY WEIGHT
@@ -249,7 +252,8 @@ if RUN_FIT_FDEN == 1:
     print("FDEN_FIT_INTERP" + str(FDEN_FIT_INTERP))
     # CALCULATED THE SCALED P-NORM (2)
     FIT_RESID_NORM = linalg.norm(FIT_RESID) / len(FIT_RESID)**(1. / 2)
-    print("Scaled Error Norm of Fit: " + str(FIT_RESID_NORM))
+    PRINT_NORM = '{:e}'.format(FIT_RESID_NORM)
+    print("Scaled Error Norm of Fit: " + str(PRINT_NORM))
 
     if PLOT_FITDATA == 1:
         if FIT_TYPE == 1:  # data was fit agains time (creep)
@@ -411,7 +415,7 @@ if FIT_TYPE == 1:
     AX2A.tick_params(labelsize=FS)
     AX2A.set_ylim(ymin=YMIN, ymax=YMAX)
     AX2A.lines[0].remove()
-    AXARR[0].legend(LBL_FDEN, frameon=1, framealpha=1, loc=4, fontsize=FS)
+    AXARR[0].legend(LBL_FDEN, frameon=1, framealpha=1, loc=0, fontsize=FS)
     AXARR[0].tick_params(labelsize=FS)
     AXARR[0].tick_params(labelsize=FS, pad=10)
     #################################
@@ -653,8 +657,8 @@ if RUN_FIT_FDEN == 1:  # modify directory where files are saved
         ADD_DIR = 'CREEP_FIT/'
     elif FIT_TYPE == 2:
         ADD_DIR = 'UNLOADING_FIT/'
-    else:
-        ADD_DIR = ''
+elif RUN_FIT_FDEN == -1:
+    ADD_DIR = ''
 
 if FIT_TYPE == 0:
     FIT_ID = '_LOAD'
@@ -662,7 +666,7 @@ elif FIT_TYPE == 1:
     FIT_ID = '_CREEP'
 elif FIT_TYPE == 2:
     FIT_ID = '_UNLOAD'
-else:
+elif RUN_FIT_FDEN == -1:
     FIT_ID = ''
 
 FIG0_NAME = TEST_NAME + STAGE_ID + FIT_ID + "_PLOTS_RESID.pdf"
@@ -707,12 +711,16 @@ if SAVECSV != 0:
         LINE10 = LINE00
         LINE11 = 'The following model was used to fit the fractional density:'
         LINE12 = DES_STR
-        LINE13 = 'Scaled Error Norm: ' + str(FIT_RESID_NORM)
+        LINE13 = 'Scaled Error Norm: ' + str(PRINT_NORM)
         LINE14 = 'Fit Report (from LMFIT):'
         LINE15 = FIT_REPORT
         LINE16 = 'Model was fit to the following domain (x) -> Duration (days)'
-        LINE17 = 'Start, ' + str(FIT_START)
-        LINE18 = 'End, ' + str(FIT_END)
+        if ALTDOMAIN_FIT_FDEN == 1:
+            LINE17 = 'Start, ' + str(FIT_START)
+            LINE18 = 'End, ' + str(FIT_END)
+        else:
+            LINE17 = 'Start, ' + str(DUR_START)
+            LINE18 = 'End, ' + str(DUR_END)
         LINE19 = 'Raw data was interpolated every ' + str(INTERP_INC) + ' sec.'
 
         if FIT_TYPE == 2:  # UNLOADING TO FIND BULK MODULUS
