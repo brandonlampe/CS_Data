@@ -1,11 +1,11 @@
-Analysis by Brandon Lampe, performed on: 2016/07/06 13:21:06
+Analysis by Brandon Lampe, performed on: 2016/07/12 16:16:39
 
 The following model was used to fit the fractional density:
 def schnute(x, start, end, a, b, c, d):
     fden = (c**b + (d**b - c**b) * (1 - exp(-a*(x - start)))/(1 - exp(-a*(end - start))))**(1 / b)
     return fden
 
-Scaled Error Norm: 0.000109568023198
+Scaled Error Norm: 3.261432e-04
 
 Fit Report (from LMFIT):
 [[Model]]
@@ -14,24 +14,24 @@ Fit Report (from LMFIT):
     # function evals   = 43
     # data points      = 8511
     # variables        = 4
-    chi-square         = 0.000
+    chi-square         = 0.001
     reduced chi-square = 0.000
-    Akaike info crit   = -155211.021
-    Bayesian info crit = -155182.825
+    Akaike info crit   = -136643.577
+    Bayesian info crit = -136615.380
 [[Variables]]
-    a:      -1.96942194 +/- 0.067052 (3.40%) (init= 0.1)
-    c:       0.92259568 +/- 7.36e-06 (0.00%) (init= 0.8761922)
-    b:       522.879263 +/- 11.51536 (2.20%) (init= 5)
+    a:      -3.88511233 +/- 0.151986 (3.91%) (init= 0.1)
+    c:       0.92288115 +/- 3.92e-05 (0.00%) (init= 0.87648)
+    b:       1100.63204 +/- 30.17634 (2.74%) (init= 5)
     end:     5.99 (fixed)
-    d:       0.92817659 +/- 3.66e-06 (0.00%) (init= 0.9748229)
+    d:       0.92820720 +/- 9.44e-06 (0.00%) (init= 0.9747146)
     start:   5.005 (fixed)
 [[Correlations]] (unreported correlations are <  0.100)
-    C(a, b)                      = -0.996 
-    C(a, d)                      = -0.670 
-    C(c, b)                      = -0.670 
-    C(a, c)                      =  0.628 
-    C(b, d)                      =  0.611 
-    C(c, d)                      = -0.237 
+    C(a, b)                      = -0.989 
+    C(a, d)                      = -0.649 
+    C(c, b)                      = -0.631 
+    C(a, c)                      =  0.577 
+    C(b, d)                      =  0.546 
+    C(c, d)                      = -0.205 
 
 Model was fit to the following domain (x) -> Duration (days)
 Start, 5.005

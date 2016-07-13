@@ -2,6 +2,16 @@
 _Note:_ herein, the phrase "TEST-NUMBER" will imply the insertion of "175_03".  This format will
 often be used when describing local directories.
 
+_Fractional Density Measurements:_ Fractional density calculations were made using measured data of
+the sample's initial and transient volume.  These volume change measurements were made using a
+a combination of Schüler gauges and fluid metering devices (either with Isco pump or dilatometer).
+During loading and unloading of a sample, Schüler gauges were exclusively used to calculate volume
+changes.  Whereas, during creep deformation a combination of these devices were used.  The exact
+combination of Schüler guages and fluid metering devices used is described in column "A" of
+worksheet "FmtData" of the TEST-NUMBER.xlsx workbook.  Because measuring devices occasionally quit
+working during a test, often the calculated fractional density measurements were made using a
+varing combination of three or more devices (e.g., Schüler Gauge 01, Schüler Gauge 02, and Isco).
+
 Following the initial increase in pressure from zero to 19.192 MPa (dilatometer was initially used,
 which resulted in somewhat variable confining pressure).  Schuler gauges were used during the
 entire test (loading, creep, and unloading). However, one of the Schuler guages temporarily quit

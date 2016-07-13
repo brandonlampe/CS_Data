@@ -378,6 +378,18 @@ def column_idx(testname_str):
         col_pcon = 2
         col_ppor = 14
         col_fden = 31
+    elif testname_str == '90_04':
+        col_time = 1  # Excel Time Column (days)
+        col_temp = 13  # confining fluid temperature (C)
+        col_pcon = 3  # confining pressure (psi)
+        col_ppor = 0  # pore pressure - none for this test
+        col_fden = 38  # calculated fractional density (Schul Avg & Isco)
+    elif testname_str == '90_08':
+        col_time = 1  # Excel Time Column (days)
+        col_temp = 15  # confining fluid temperature (C)
+        col_pcon = 5  # confining pressure (psi)
+        col_ppor = 0  # pore pressure - none for this test
+        col_fden = 39  # calculated fractional density (Schuler Avg)
     else:
         sys.exit('-- Column IDX not defined for this test --')
     return col_time, col_temp, col_pcon, col_ppor, col_fden

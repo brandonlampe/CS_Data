@@ -1,11 +1,11 @@
-Analysis by Brandon Lampe, performed on: 2016/07/06 16:59:21
+Analysis by Brandon Lampe, performed on: 2016/07/12 20:52:28
 
 The following model was used to fit the fractional density:
 def linear(x, slope, intercept):
     fden = slope * x + intercept
     return fden
 
-Scaled Error Norm: 1.233662e-04
+Scaled Error Norm: 1.433558e-04
 
 Fit Report (from LMFIT):
 [[Model]]
@@ -16,11 +16,11 @@ Fit Report (from LMFIT):
     # variables        = 2
     chi-square         = 0.000
     reduced chi-square = 0.000
-    Akaike info crit   = -427708.787
-    Bayesian info crit = -427692.636
+    Akaike info crit   = -420572.300
+    Bayesian info crit = -420556.149
 [[Variables]]
-    slope:       0.00122427 +/- 1.01e-06 (0.08%) (init=-1)
-    intercept:   0.92582820 +/- 2.48e-05 (0.00%) (init= 2)
+    slope:       0.00026833 +/- 1.17e-06 (0.44%) (init=-1)
+    intercept:   0.93915205 +/- 2.89e-05 (0.00%) (init= 2)
 [[Correlations]] (unreported correlations are <  0.100)
     C(slope, intercept)          = -0.999 
 

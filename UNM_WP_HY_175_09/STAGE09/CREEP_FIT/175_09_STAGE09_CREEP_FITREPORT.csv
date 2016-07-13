@@ -1,37 +1,37 @@
-Analysis by Brandon Lampe, performed on: 2016/07/06 13:13:17
+Analysis by Brandon Lampe, performed on: 2016/07/12 20:18:27
 
 The following model was used to fit the fractional density:
 def schnute(x, start, end, a, b, c, d):
     fden = (c**b + (d**b - c**b) * (1 - exp(-a*(x - start)))/(1 - exp(-a*(end - start))))**(1 / b)
     return fden
 
-Scaled Error Norm: 0.000162672787143
+Scaled Error Norm: 1.350458e-04
 
 Fit Report (from LMFIT):
 [[Model]]
     Model(_eval)
 [[Fit Statistics]]
-    # function evals   = 73
+    # function evals   = 38
     # data points      = 7949
     # variables        = 4
     chi-square         = 0.000
     reduced chi-square = 0.000
-    Akaike info crit   = -138678.492
-    Bayesian info crit = -138650.568
+    Akaike info crit   = -141637.535
+    Bayesian info crit = -141609.612
 [[Variables]]
-    a:      -2.26920834 +/- 0.115305 (5.08%) (init= 0.1)
-    c:       0.93633981 +/- 1.38e-05 (0.00%) (init= 0.8894583)
-    b:       964.556401 +/- 28.26251 (2.93%) (init= 5)
+    a:       3.10631535 +/- 0.174614 (5.62%) (init= 0.1)
+    c:       0.93457503 +/- 7.61e-06 (0.00%) (init= 0.8876596)
+    b:      -225.135334 +/- 75.60981 (33.58%) (init= 5)
     end:     9.03 (fixed)
-    d:       0.94015129 +/- 5.31e-06 (0.00%) (init= 0.9875467)
+    d:       0.93630076 +/- 4.41e-06 (0.00%) (init= 0.9834696)
     start:   8.11 (fixed)
 [[Correlations]] (unreported correlations are <  0.100)
-    C(a, b)                      = -0.991
-    C(a, d)                      = -0.679
-    C(c, b)                      = -0.662
-    C(a, c)                      =  0.603
-    C(b, d)                      =  0.592
-    C(c, d)                      = -0.229
+    C(a, b)                      = -0.984 
+    C(a, d)                      = -0.719 
+    C(c, b)                      = -0.682 
+    C(b, d)                      =  0.629 
+    C(a, c)                      =  0.575 
+    C(c, d)                      = -0.243 
 
 Model was fit to the following domain (x) -> Duration (days)
 Start, 8.11

@@ -1,0 +1,37 @@
+Analysis by Brandon Lampe, performed on: 2016/07/13 08:55:47
+
+The following model was used to fit the fractional density:
+def linear(x, slope, intercept):
+    fden = slope * x + intercept
+    return fden
+
+Scaled Error Norm: 1.009869e-04
+
+Fit Report (from LMFIT):
+[[Model]]
+    Model(_eval)
+[[Fit Statistics]]
+    # function evals   = 9
+    # data points      = 277
+    # variables        = 2
+    chi-square         = 0.000
+    reduced chi-square = 0.000
+    Akaike info crit   = -5091.081
+    Bayesian info crit = -5083.833
+[[Variables]]
+    slope:       0.00020395 +/- 3.68e-06 (1.81%) (init=-1)
+    intercept:   0.81841886 +/- 0.000101 (0.01%) (init= 2)
+[[Correlations]] (unreported correlations are <  0.100)
+    C(slope, intercept)          = -0.998 
+
+Model was fit to the following domain (x) -> Duration (days)
+Start, 76.018
+End, 76.05
+
+Raw data was interpolated every 10 sec.
+
+Average Confining Pressure (MPa): 27.3724958424
+Average Pore Pressure (MPa): -0.111708526216
+Average Fractional Density: 0.82400150736
+Average Temperature (C): 21.1364218505
+Average Bulk Modulus (MPa): 4040.19896017

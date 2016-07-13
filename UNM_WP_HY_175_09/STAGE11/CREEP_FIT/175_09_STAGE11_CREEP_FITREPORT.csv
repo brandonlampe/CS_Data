@@ -1,37 +1,37 @@
-Analysis by Brandon Lampe, performed on: 2016/07/06 15:15:37
+Analysis by Brandon Lampe, performed on: 2016/07/12 20:20:33
 
 The following model was used to fit the fractional density:
 def schnute(x, start, end, a, b, c, d):
     fden = (c**b + (d**b - c**b) * (1 - exp(-a*(x - start)))/(1 - exp(-a*(end - start))))**(1 / b)
     return fden
 
-Scaled Error Norm: 1.505054e-04
+Scaled Error Norm: 1.441148e-04
 
 Fit Report (from LMFIT):
 [[Model]]
     Model(_eval)
 [[Fit Statistics]]
-    # function evals   = 138
+    # function evals   = 33
     # data points      = 8234
     # variables        = 4
     chi-square         = 0.000
     reduced chi-square = 0.000
-    Akaike info crit   = -144931.296
-    Bayesian info crit = -144903.231
+    Akaike info crit   = -145645.820
+    Bayesian info crit = -145617.756
 [[Variables]]
-    a:       13.8780758 +/- 2.639948 (19.02%) (init= 0.1)
-    c:       0.94347152 +/- 4.31e-06 (0.00%) (init= 0.8959972)
-    b:      -12197.4450 +/- 2.43e+03 (19.89%) (init= 5)
+    a:      -1.25802433 +/- 1.265961 (100.63%) (init= 0.1)
+    c:       0.94105786 +/- 5.65e-06 (0.00%) (init= 0.8935195)
+    b:       461.528333 +/- 2.42e+03 (524.70%) (init= 5)
     end:     11.949 (fixed)
-    d:       0.94431904 +/- 6.81e-06 (0.00%) (init= 0.9919102)
+    d:       0.94151469 +/- 7.00e-06 (0.00%) (init= 0.9890139)
     start:   10.996 (fixed)
 [[Correlations]] (unreported correlations are <  0.100)
-    C(a, b)                      = -0.999 
-    C(a, d)                      = -0.685 
-    C(b, d)                      =  0.673 
-    C(c, b)                      = -0.448 
-    C(a, c)                      =  0.412 
-    C(c, d)                      = -0.163 
+    C(a, b)                      = -0.997 
+    C(a, c)                      = -0.693 
+    C(b, d)                      = -0.671 
+    C(c, b)                      =  0.650 
+    C(a, d)                      =  0.624 
+    C(c, d)                      = -0.249 
 
 Model was fit to the following domain (x) -> Duration (days)
 Start, 10.996
