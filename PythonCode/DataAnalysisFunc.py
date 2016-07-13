@@ -394,100 +394,206 @@ def column_idx(testname_str):
         sys.exit('-- Column IDX not defined for this test --')
     return col_time, col_temp, col_pcon, col_ppor, col_fden
 
+# '''
+# Table.py
 
-# def plot_func(num_plot,
-#               p1x, p1y, p2x, p2y, p3x, p3y,
-#               l1x='plt 1: x lbl', l1y, l2x, l2y, l3x, l3y,
-#               leg1, leg1r, leg2, leg2r, leg3, leg3r):
+# A module/class for creating LaTeX deluxetable's.  In a nutshell, you create
+# a table instance, add columns, set options, then call the pring method.'''
 
-#               p1yr=None, p2yr=None, p3yr=None):
-#     FIG1 = plt.figure(figsize=(13, 10))
+# import numpy
+# import sigfig
+# import os,string,re,sys
+# import types
 
-#     AX1 = FIG1.add_subplot(311)
-#     AX1.set_title("Test: " + FOLDER_DIR, fontsize=18)
-#     LBL_FDEN = ["Fractional Density: Measure", "Fractional Denisty: Fit"]
-#     LBL_PRES = ["Confining Pressure"]
-#     AX1.plot(DUR_DAY_INTERP, FDEN_INTERP, linestyle='-', linewidth=1,
-#              marker='.', markersize=4, color='y', alpha=1)
-#     if RUN_FIT_FDEN == 1:
-#         AX1.plot(DUR_DAY_INTERP, FDEN_FIT_INTERP, linestyle='-',
-#                  linewidth=2, marker='o', markersize=1, color='b',
-#                  alpha=.5)
-#     AX1.grid(True)
+# float_types = [types.FloatType, numpy.float16, numpy.float32, numpy.float64,
+#       numpy.float128]
 
-#     AX1A = AX1.twinx()
-#     AX1A.plot(DUR_DAY_INTERP, PCON_INTERP, linestyle='-',
-#               linewidth=1, marker='s', markersize=4, color='r',
-#               alpha=1)
-#     AX1A.set_ylabel("Pressure (MPa)", fontsize=FS)
-#     AX1A.tick_params(labelsize=FS)
+# class Table:
 
-#     AX1.tick_params(labelsize=FS)
-#     AX1.tick_params(labelsize=FS, pad=10)
+#    def __init__(self, numcols, justs=None, fontsize=None, rotate=False,
+#          tablewidth=None, tablenum=None, caption=None, label=None):
 
-#     AX1.legend(LBL_FDEN, frameon=1, framealpha=1, loc=2, fontsize=FS)
-#     AX1A.legend(LBL_PRES, frameon=1, framealpha=1, loc=4, fontsize=FS)
-#     AX1.set_ylabel("Fractional Density", fontsize=FS)
-#     AX1.set_xlabel("Duration (days)", fontsize=FS, labelpad=0)
+#       self.numcols = numcols
+#       self.justs = justs
+#       if self.justs is None:
+#          self.justs = ['c' for i in range(numcols)]
+#       else:
+#          self.justs = list(justs)
+#          if len(self.justs) != numcols:
+#             raise ValueError, "Error, justs must have %d elements" % (numcols)
+#       for just in self.justs:
+#          if just not in ['c','r','l']:
+#             raise ValueError, "Error, invalid character for just: %s" % just
+#       self.fontsize = fontsize
+#       self.rotate = rotate
+#       self.tablewidth = tablewidth
+#       self.tablenum = None
+#       self.caption = caption
+#       self.label = label
+#       self.col_justs = []
+#       self.headers = []
+#       self.header_ids = []
+#       # self.data is a list of data.  Each element of the list corresponds
+#       #  to a separate "secton" of the table, headed by self.data_labels
+#       # Each element of data should be a list of self.numcols items.
+#       self.data = []
+#       self.data_labels = []
+#       self.data_label_types = []
+#       self.sigfigs = []
+#       self.nrows = []
 
-#     #################################
-#     LBL_STRN = ["Fit", "Measure"]
-#     # LBL_INTERVAL = ["Sampling"]
-#     AX2 = FIG1.add_subplot(312)
-#     AX2.plot(PCON_INTERP, VSTRN_FIT_INTERP, linestyle='-',
-#              linewidth=2, marker='o', markersize=1,
-#              color='b', alpha=0.5)
-#     AX2.plot(PCON_INTERP, VSTRN_INTERP, linestyle='-',
-#              linewidth=1, marker='.', markersize=4,
-#              color='y', alpha=1)
-#     AX2.grid(True)
-#     AX2.set_ylabel('Volume Strain', fontsize=FS)
-#     AX2.set_xlabel("Confining Pressure (MPa)", fontsize=FS, labelpad=0)
-#     AX2.legend(LBL_STRN, frameon=1, framealpha=0.75, loc=4, fontsize=FS)
-#     # AX2B.legend(LBL_INTERVAL, frameon=1, framealpha=0.85, loc=4, fontsize=FS)
+#    def add_header_row(self, headers, cols=None):
+#       '''Add a header row to the table.  [headers] should be a list of the
+#       strings that will be in the header.  [cols], if specified, should be a
+#       list of column indexes.  If [cols] is None, it is assummed the headers
+#       are in order and there are no multicolumns.  If cols is specified, you
+#       can indicate the the ith header spans several columns by setting the
+#       ith value of cols to a 2-tuple of first and last columns for the span.'''
 
-#     AX2.tick_params(labelsize=FS)
-#     AX2.tick_params(labelsize=FS, pad=10)
-#     AX2.tick_params(labelsize=FS, pad=10)
-#     #################################
-#     LBL_STRN_RATE = ["Volumetric Strain Rate"]
-#     LBL_COMP = ["Drained"]
+#       if cols is None:
+#          if len(headers) != self.numcols:
+#             raise ValueError, "Error, headers must be a list of length %d" %\
+#                   self.numcols
+#          self.headers.append(headers)
+#          self.header_ids.append(range(self.numcols))
+#       else:
+#          ids = []
+#          for item in cols:
+#             if type(item) is types.IntType:
+#                ids.append(item)
+#             elif type(item) is types.TupleType:
+#                ids += range(item[0],item[1]+1)
 
-#     AX3 = FIG1.add_subplot(313)
-#     if FIT_TYPE == 0:  # INITIAL LOADING
-#         AX3.semilogy(FDEN_FIT_INTERP, VSTRN_RATE_FIT_INTERP, linestyle='-',
-#                      linewidth=2, marker='.', markersize=4,
-#                      color='m', alpha=0.75)
+#          ids.sort
+#          if ids != range(self.numcols):
+#             raise ValueError, "Error, missing columns in cols"
+#          self.headers.append(headers)
+#          self.header_ids.append(cols)
+#       return
 
-#         AX3A = AX3.twinx()
-#         AX3A.semilogy(FDEN_FIT_INTERP, BULK_DRAINED_FIT_INTERP, linestyle='-',
-#                       linewidth=2, marker='s', markersize=4,
-#                       color='c', alpha=0.75)
-#     elif FIT_TYPE == 2:  # UNLOADING
-#         AX3.plot(FDEN_FIT_INTERP, VSTRN_RATE_FIT_INTERP, linestyle='-',
-#                  linewidth=2, marker='.', markersize=4,
-#                  color='m', alpha=0.75)
+#    def add_data(self, data, label="", sigfigs=2, labeltype='cutin'):
+#       '''Add a matrix of data.  [data] should be a list with length equal to
+#       the number of columns of the table.  Each item of [data] should be a
+#       list or numpy array.  A list of strings will be inserved as is.  If
+#       a column is a 1-D array of float type, the number of significant
+#       figures will be set to [sigfigs].  If a column is 2D with shape
+#       (N,2), it is treated as a value with uncertainty and the uncertainty
+#       will be rounded to [sigfigs] and value will be rounded accordingly,
+#       and both will be printed with parenthetical errors.  If a label is
+#       given, it will be printed in the table with \cutinhead if labeltype
+#       is 'cutin' or \sidehead if labeltype is 'side'.'''
 
-#         AX3A = AX3.twinx()
-#         AX3A.plot(FDEN_FIT_INTERP, BULK_DRAINED_FIT_INTERP, linestyle='-',
-#                   linewidth=2, marker='s', markersize=4,
-#                   color='c', alpha=0.75)
-#         Y_FMT = FormatStrFormatter('%2.1e')
-#         AX3.yaxis.set_major_formatter(Y_FMT)
-#     AX3.grid(True)
-#     AX3.set_ylabel(r'Strain Rate $\left( \frac{1}{sec} \right)$', fontsize=FS)
-#     AX3A.set_ylabel(r'Bulk Modulus (MPa)',
-#                     fontsize=FS)
-#     AX3A.tick_params(labelsize=FS)
+#       if type(data) is not types.ListType:
+#          raise ValueError, "data should be a list"
+#       if len(data) != self.numcols:
+#          raise ValueError, \
+#                "Error, length of data mush match number of table columns"
 
-#     AX3.legend(LBL_STRN_RATE, frameon=1, framealpha=.85, loc=3, fontsize=FS)
-#     AX3A.legend(LBL_COMP, frameon=1, framealpha=0.85, loc=4, fontsize=FS)
+#       for datum in data:
+#          if type(datum) not in [types.ListType, numpy.ndarray]:
+#             raise ValueError, "data must be list of lists and numpy arrays"
+#          if len(numpy.shape(datum)) not in [1,2]:
+#             raise ValueError, "data items must be 1D or 2D"
 
-#     AX3.tick_params(labelsize=FS)
-#     AX3.tick_params(labelsize=FS, pad=10)
-#     AX3.set_xlabel("Fractional Density", fontsize=FS, labelpad=0)
-#     AX3.tick_params(labelsize=FS, pad=10)
+#       nrows = numpy.shape(data[0])[0]
+#       for datum in data[1:]:
+#          if numpy.shape(datum)[0] != nrows:
+#             raise ValueError, "each data item must have same first dimension"
+#       self.nrows.append(nrows)
+#       if len(numpy.shape(sigfigs)) == 0:
+#          self.sigfigs.append([sigfigs for i in range(self.numcols)])
+#       else:
+#          if len(numpy.shape(sigfigs)) != 1:
+#             raise ValueError, \
+#                "sigfigs must be scalar or have same length as number of columns"
+#          self.sigfigs.append(sigfigs)
+#       self.data_labels.append(label)
+#       self.data_label_types.append(labeltype)
+#       self.data.append(data)
 
-#     # adjust spacing around subplots
-#     FIG1.subplots_adjust(left=0.1, right=0.925, bottom=0.06, top=0.95,
-#                          wspace=0.2, hspace=0.25)
+#    def print_table(self, fp=None):
+#       if fp is None:
+#          fp = sys.stdout
+#       elif type(fp) is type(""):
+#          fp = open(fp, 'w')
+#          we_open = True
+#       else:
+#          we_open = False
+
+#       self.print_preamble(fp)
+#       self.print_header(fp)
+#       self.print_data(fp)
+#       self.print_footer(fp)
+#       if we_open:
+#          fp.close()
+
+#    def print_preamble(self, fp):
+#       cols = "".join(self.justs)
+#       fp.write("\\begin{deluxetable}{%s}\n" % cols)
+#       if self.fontsize: fp.write("\\tabletypesize{%s}\n" % str(self.fontsize))
+#       if self.rotate: fp.write("\\rotate\n")
+#       if self.tablewidth is not None:
+#          fp.write("\\tablewidth{%s}\n" % str(self.tablewidth))
+#       else:
+#          fp.write("\\tablewidth{0pc}\n")
+#       if self.tablenum:  fp.write("\\tablenum{%s}\n" % str(self.tablenum))
+#       fp.write("\\tablecolumns{%d}\n" % self.numcols)
+#       if self.caption:
+#          if self.label:
+#             lab = "\\label{%s}" % (self.label)
+#             fp.write("\\tablecaption{%s}\n" % (str(self.caption)+lab))
+
+#    def print_header(self,fp):
+#       fp.write("\\tablehead{\n")
+
+#       for i,headers in enumerate(self.headers):
+#          end = ['\\\\\n',''][i == len(self.headers)-1]
+#          for j,header in enumerate(headers):
+#             sep = [end,'&'][j < len(headers)-1]
+#             if len(numpy.shape(self.header_ids[i][j])) == 1:
+#                length = self.header_ids[i][j][1] - self.header_ids[i][j][0] + 1
+#                fp.write("\\multicolumn{%d}{c}{%s} %s " % (length, header,sep))
+#             else:
+#                fp.write("\\colhead{%s} %s " % (header,sep))
+#       fp.write("}\n")
+
+#    def print_data(self,fp):
+#       fp.write("\\startdata\n")
+
+#       for i,data in enumerate(self.data):
+#          if self.data_labels[i] != '':
+#             if self.data_label_types == "cutin":
+#                fp.write("\\cutinhead{%s}\n" % self.data_labels[i])
+#             else:
+#                fp.write("\\sidehead{%s}\n" % self.data_labels[i])
+
+#          rows = []
+#          for j in range(numpy.shape(data[0])[0]):
+#             rows.append([])
+#             for k in range(len(data)):
+#                sf = self.sigfigs[i][k]
+#                if len(numpy.shape(data[k])) == 1:
+#                   if type(data[k][j]) in float_types:
+#                      if numpy.isnan(data[k][j]):
+#                         rows[-1].append('\\ldots')
+#                      else:
+#                         rows[-1].append(sigfig.round_sig(data[k][j], sf))
+#                   else:
+#                      rows[-1].append(str(data[k][j]))
+#                else:
+#                   print data[k]
+#                   if numpy.isnan(data[k][j,0]):
+#                      val = "\\ldots"
+#                   else:
+#                      val = sigfig.round_sig_error(data[k][j,0],data[k][j,1],sf,
+#                             paren=True)
+#                   rows[-1].append(val)
+
+#          for row in rows:
+#             fp.write(" & ".join(row))
+#             fp.write("\\\\\n")
+
+#       fp.write("\\enddata\n")
+
+#    def print_footer(self, fp):
+#       fp.write("\\end{deluxetable}\n")

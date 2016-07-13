@@ -1,28 +1,35 @@
-Analysis by Brandon Lampe, performed on: 2016/07/10 14:17:12
+Analysis by Brandon Lampe, performed on: 2016/07/13 14:47:19
 
 The following model was used to fit the fractional density:
-def linear(x, slope, intercept):
-    fden = slope * x + intercept
+def gompertz(x, intercept, start, a, b, c):
+    fden = intercept + a * exp(-exp(b - c * (x - start)))
     return fden
 
-Scaled Error Norm: 1.466961e-04
+Scaled Error Norm: 1.461905e-04
 
 Fit Report (from LMFIT):
 [[Model]]
     Model(_eval)
 [[Fit Statistics]]
-    # function evals   = 9
+    # function evals   = 77
     # data points      = 14688
-    # variables        = 2
+    # variables        = 4
     chi-square         = 0.000
     reduced chi-square = 0.000
-    Akaike info crit   = -259300.289
-    Bayesian info crit = -259285.099
+    Akaike info crit   = -259395.700
+    Bayesian info crit = -259365.321
 [[Variables]]
-    slope:       0.00035911 +/- 2.47e-06 (0.69%) (init=-1)
-    intercept:   0.93782397 +/- 3.49e-05 (0.00%) (init= 2)
+    a:           0.00257471 +/- 0.001255 (48.78%) (init= 5)
+    start:       13.3 (fixed)
+    c:           0.45838325 +/- 0.181644 (39.63%) (init= 1)
+    intercept:   0.94242412 +/- 0.000101 (0.01%) (init= 0.6)
+    b:           0.92416572 +/- 0.042359 (4.58%) (init= 1)
 [[Correlations]] (unreported correlations are <  0.100)
-    C(slope, intercept)          = -0.999 
+    C(a, c)                      = -0.998 
+    C(c, intercept)              =  0.983 
+    C(a, intercept)              = -0.971 
+    C(a, b)                      =  0.275 
+    C(c, b)                      = -0.220 
 
 Model was fit to the following domain (x) -> Duration (days)
 Start, 13.3
