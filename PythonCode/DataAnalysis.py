@@ -27,7 +27,7 @@ RUN_FIT_FDEN = 1  # SHOULD THE FIT TO FDEN BE CALCULATED
 # 0 => VSTRN WILL BE FIT TO PRESSURE (LOADING)
 # 1 => FIT AGAINST TIME (CREEP)
 # 2 => VSTRN FIT AGAINST PRESSURE (UNLOADING)
-FIT_TYPE = 1
+FIT_TYPE = 0
 
 # TO FIT A PORTION OF THE ENTIRED DOMAIN, CHOOSE ALTDOMINE_FIT_FDEN = 1
 ALTDOMAIN_FIT_FDEN = 0  # FIT FDEN TO AN ALTERNATE DOMAIN THAN DEFINED BY
@@ -40,38 +40,47 @@ MODEL_TYPE = 3
 PLOT = 1  # SHOULD THE RESULTS BE PLOTTED175_09
 SAVEFIG = 1  # SHOULD THE PLOTS BE SAVED
 SAVECSV = 1  # SHOULD A .CSV OF THE RESULTS BE SAVED
-PLOT_FITDATA = 1  # SHOULD RESIDUALS OF THE FIT BE PRINTED
+PLOT_FITDATA = 0  # SHOULD RESIDUALS OF THE FIT BE PRINTED
 PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
-STAGE_ID = '_STAGE13'  # '_STAGE01' , FOR MULTI-STAGE TESTS
+STAGE_ID = ''  # '_STAGE01' , FOR MULTI-STAGE TESTS
 ADJUST_FOR_TEMP = 0  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
 
 # IF RESULTS FROM CS MODEL ARE TO BE PLOTTED ALSO, DEFINE PATH TO DATA
 PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
              'UNM_WP_HY_175_04_OUT' + '.csv'
 
-DUR_START = 13.3  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-DUR_END = 15.0  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-FIT_START = 5.005  # START FITTING
-FIT_END = 5.99  # END FITTING
+DUR_START = 1.015  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_END = 1.02  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+FIT_START = 0.0025  # START FITTING
+FIT_END = 4.745  # END FITTING
 
 # TEST DETAILS
 ADDED_WATER = 0.0  # PERCENT BY WEIGHT
-MEAN_PARTICLE_SIZE = 2.0  # millimeters
+PERCENT_UPPER = 50.773  # PERCENT FINER - VALUE ABOVE 50%
+SIZE_UPPER = 3.35  # millimeter
+PERCENT_LOWER = 43.149  # PERCENT FINER - VALUE BELOW 50%
+SIZE_LOWER = 2.8  # MILLIMETER
+SIZE_RATE = (SIZE_LOWER - SIZE_UPPER) / (PERCENT_LOWER - PERCENT_UPPER)
+SIZE_MEAN = SIZE_LOWER + (50 - PERCENT_LOWER) * SIZE_RATE
+MEAN_PARTICLE_SIZE = SIZE_MEAN  # millimeters
+print("Average Particle Size (mm): " + str(SIZE_MEAN))
 
 # interpolation spacing
-INTERP_INC = 10000  # SECONDS, SIZE OF INTERPOLATION INCREMENT
+INTERP_INC = 10  # SECONDS, SIZE OF INTERPOLATION INCREMENT
 
 # COMPLETED TESTS
 # FOLDER_DIR = 'UNM_WP_HY_175_04'
 # FOLDER_DIR = 'UNM_WP_HY_175_03'
 # FOLDER_DIR = 'UNM_WP_HY_175_01'
+# FOLDER_DIR = 'UNM_WP_HY_175_09'
+# FOLDER_DIR = 'UNM_WP_HY_175_10'
+FOLDER_DIR = 'UNM_WP_HY_175_11'
 
 # NOT COMPLETED TESTS
 # FOLDER_DIR = 'UNM_WP_HY_90_02'
 # FOLDER_DIR = 'UNM_WP_HY_90_03'
 # FOLDER_DIR = 'UNM_WP_HY_90_04'
 # FOLDER_DIR = 'UNM_WP_HY_90_08'
-FOLDER_DIR = 'UNM_WP_HY_175_09'
 STAGE_DIR = '/' + STAGE_ID[1:]
 
 # load tests data - .csv file that has been exported directly from .xlsx
@@ -460,7 +469,7 @@ if FIT_TYPE == 1:
     AXARR[1].tick_params(labelsize=FS)
     AXARR[1].tick_params(labelsize=FS, pad=10)
     #################################
-    LBL_STRS = ["Confining", "Pore", "Terzaghi",
+    LBL_STRS = ["Confining", "Pore", "Difference",
                 "Solid"]
     LBL_TEMP = ["Temperature"]
     AXARR[2].plot(DUR_DAY_INTERP, PCON_INTERP, linestyle='-',
@@ -472,9 +481,9 @@ if FIT_TYPE == 1:
     AXARR[2].plot(DUR_DAY_INTERP, PTER_INTERP, linestyle='-',
                   linewidth=1, marker='.', markersize=4,
                   color='r', alpha=1)
-    AXARR[2].plot(DUR_DAY_INTERP, PSOL_INTERP, linestyle='-',
-                  linewidth=1, marker='.', markersize=4,
-                  color='c', alpha=1)
+    # AXARR[2].plot(DUR_DAY_INTERP, PSOL_INTERP, linestyle='-',
+    #               linewidth=1, marker='.', markersize=4,
+    #               color='c', alpha=1)
     AXARR[2].yaxis.set_major_formatter(FuncFormatter(
         lambda x, p: format(int(x), ',')))
     AXARR[2].grid(True)
@@ -482,8 +491,8 @@ if FIT_TYPE == 1:
 
     AX2C = AXARR[2].twinx()
     AX2C.plot(DUR_DAY_INTERP, TEMP_INTERP, linestyle='-',
-              linewidth=1, marker='.', markersize=4,
-              color='k', alpha=1)
+              linewidth=1, marker='None', markersize=4,
+              color='k', alpha=0.5)
     AX2C.set_ylabel(r'Temperature ($^o$C)', fontsize=FS)
     AX2C.tick_params(labelsize=FS)
 

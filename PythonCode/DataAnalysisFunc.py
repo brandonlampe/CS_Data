@@ -96,9 +96,38 @@ def gompertz(x, intercept, start, a, b, c):
 
 
 def schnute(x, start, end, a, b, c, d):
+    """
+    Input:
+    x = independent variable (days)
+    Output:
+    fden = fractional density
+    """
     fden = (c**b + (d**b - c**b) * (1 - np.exp(-a * (x - start))) /
                                    (1 - np.exp(-a * (end - start))))**(1 / b)
     return fden
+
+
+def deriv_schnute(x, start, end, a, b, c, d):
+    """ analytical derivative of Schnute
+    Input:
+    x = independent variable (days)
+    Output: rate of fractional density change per day
+    fden_dot = fden/(day)
+    """
+    fden_dot = (-a * ((c**b * (np.exp(a * (x - end)) - 1) *
+                np.exp(a * (x - start)) +
+                (c**b - d**b) * (np.exp(a * (x - start)) - 1)) *
+        np.exp(-a * (x - start)) /
+        (np.exp(a * (x - end)) - 1))**(1 / b) *
+        (c**b - d**b) * ((np.exp(a * (x - start)) - 1) *
+                         np.exp(-a * (-2 * x + start + end)) -
+                         (np.exp(a * (x - end)) - 1) *
+                         np.exp(a * (x - start))) *
+        np.exp(-a * (x - start)) / (b * (c**b * (np.exp(a * (x - end)) - 1) *
+                                    np.exp(a * (x - start)) + (c**b - d**b) *
+                                    (np.exp(a * (x - start)) - 1)) *
+                                    (np.exp(a * (x - end)) - 1)))
+    return fden_dot
 
 
 def linear(x, slope, intercept):
@@ -365,7 +394,7 @@ def column_idx(testname_str):
         col_temp = 15  # confining fluid temperature (C)
         col_pcon = 5  # confining pressure (psi)
         col_ppor = 0  # pore pressure - none for this test
-        col_fden = 37  # calculated fractional density
+        col_fden = 37  # calculated fractional density (Schuler and Isco)
     elif testname_str == '175_04':
         col_time = 1  # Excel Time Column (days)
         col_temp = 13
@@ -374,10 +403,22 @@ def column_idx(testname_str):
         col_fden = 34
     elif testname_str == '175_09':
         col_time = 1  # Excel Time Column (days)
-        col_temp = 8
-        col_pcon = 2
-        col_ppor = 14
-        col_fden = 31
+        col_temp = 8  # confining fluid temperature (C)
+        col_pcon = 2  # confining pressure (psi)
+        col_ppor = 14  # pore pressure (psi)
+        col_fden = 31  # calculated fractional density (Schuler)
+    elif testname_str == '175_10':
+        col_time = 1  # Excel Time Column (days)
+        col_temp = 8  # confining fluid temperature (C)
+        col_pcon = 2  # confining pressure (psi)
+        col_ppor = 14  # pore pressure (psi)
+        col_fden = 28  # calculated fractional density (Schuler 01)
+    elif testname_str == '175_11':
+        col_time = 1  # Excel Time Column (days)
+        col_temp = 8  # confining fluid temperature (C)
+        col_pcon = 2  # confining pressure (psi)
+        col_ppor = 14  # pore pressure (psi)
+        col_fden = 30  # calculated fractional density (Schuler AVG)
     elif testname_str == '90_04':
         col_time = 1  # Excel Time Column (days)
         col_temp = 13  # confining fluid temperature (C)
@@ -390,6 +431,12 @@ def column_idx(testname_str):
         col_pcon = 5  # confining pressure (psi)
         col_ppor = 0  # pore pressure - none for this test
         col_fden = 39  # calculated fractional density (Schuler Avg)
+    elif testname_str == '90_07':
+        col_time = 1  # Excel Time Column (days)
+        col_temp = 15  # confining fluid temperature (C)
+        col_pcon = 5  # confining pressure (psi)
+        col_ppor = 0  # pore pressure - none for this test
+        col_fden = 36  # calculated fractional density (Schuler Avg)
     else:
         sys.exit('-- Column IDX not defined for this test --')
     return col_time, col_temp, col_pcon, col_ppor, col_fden

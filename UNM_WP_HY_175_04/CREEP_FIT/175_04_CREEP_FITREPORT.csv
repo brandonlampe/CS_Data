@@ -26,14 +26,14 @@ Fit Report (from LMFIT):
     d:       0.94650338 +/- 3.31e-06 (0.00%) (init= 0.9946458)
     start:   2.096 (fixed)
 [[Correlations]] (unreported correlations are <  0.100)
-    C(a, b)                      = -0.887 
-    C(a, d)                      = -0.769 
-    C(b, d)                      =  0.468 
-    C(c, b)                      = -0.299 
-    C(a, c)                      =  0.225 
+    C(a, b)                      = -0.887
+    C(a, d)                      = -0.769
+    C(b, d)                      =  0.468
+    C(c, b)                      = -0.299
+    C(a, c)                      =  0.225
 
 Model was fit to the following domain (x) -> Duration (days)
 Start, 2.096
-End, 6
+End, 16.123
 
 Raw data was interpolated every 10 sec.

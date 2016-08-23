@@ -1,7 +1,7 @@
 (dp0
 S'mean particle size'
 p1
-F3.15
+F3.2942353095487933
 sS'average temperature'
 p2
 cnumpy.core.multiarray
