@@ -13,10 +13,7 @@ import DataAnalysisFunc as daf
 REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 
 SAVE_DIR = 'WP_HY_175'
-FOLDER_DIR_LIST = ['UNM_WP_HY_175_01', 'UNM_WP_HY_175_04',
-                   'UNM_WP_HY_175_09/STAGE01',
-                   'UNM_WP_HY_175_10/STAGE01',
-                   'UNM_WP_HY_175_11/STAGE01']
+FOLDER_DIR_LIST = ['UNM_WP_HY_175_01', 'UNM_WP_HY_175_04']
 
 # BUILD_SUMMARY = 1  # 0=> SUMMARY IS READ FROM FILE, 1=> SUMMARY IS BUILT
 SHOW_PLOT = 1
@@ -39,7 +36,7 @@ for folder_dir in FOLDER_DIR_LIST:
         # print(fit_name)
         if fit_name != []:
             FIT_IDX = 0  # 0=>CREEP, 1=>FINAL, 2=>LOADING
-            if fit_name[FIT_IDX] == 'CREEP_FIT':
+            if fit_name[FIT_IDX] == 'LOADING_FIT':
                 # print(fit_name)
                 fit_dir = os.path.join(root, fit_name[FIT_IDX])
                 for filename in os.listdir(fit_dir):
@@ -50,6 +47,7 @@ for folder_dir in FOLDER_DIR_LIST:
                             CREEP_PARM = pickle.loads(handle.read())
                         CREEP_PARM_LIST.append(CREEP_PARM)
                     elif filename[-8:] == 'SPEC.bin':
+                        #  ONLY CREEP ANALYSIS HAVE A "SPEC.bin" file
                         if filename[:6] == '175_09':
                             file_dir = os.path.join(fit_dir,
                                                     '175_09_STAGE01' +
@@ -67,10 +65,10 @@ PCON = np.zeros(TEST_CNT)
 PPOR = np.zeros(TEST_CNT)
 PDIF = np.zeros(TEST_CNT)
 
-for i in xrange(TEST_CNT):
-    PCON[i] = TEST_SPEC_LIST[i]['average confining pressure']
-    PPOR[i] = TEST_SPEC_LIST[i]['average pore pressure']
-    PDIF[i] = PCON[i] - PPOR[i]
+# for i in xrange(TEST_CNT):
+#     PCON[i] = TEST_SPEC_LIST[i]['average confining pressure']
+#     PPOR[i] = TEST_SPEC_LIST[i]['average pore pressure']
+#     PDIF[i] = PCON[i] - PPOR[i]
 
 
 # CREEP (FUNCTION OF TIME)
