@@ -419,6 +419,12 @@ def column_idx(testname_str):
         col_pcon = 2  # confining pressure (psi)
         col_ppor = 14  # pore pressure (psi)
         col_fden = 30  # calculated fractional density (Schuler AVG)
+    elif testname_str == '175_12':
+        col_time = 1  # Excel Time Column (days)
+        col_temp = 8  # confining fluid temperature (C)
+        col_pcon = 2  # confining pressure (psi)
+        col_ppor = 14  # pore pressure (psi)
+        col_fden = 30  # calculated fractional density (Schuler AVG)
     elif testname_str == '90_04':
         col_time = 1  # Excel Time Column (days)
         col_temp = 13  # confining fluid temperature (C)

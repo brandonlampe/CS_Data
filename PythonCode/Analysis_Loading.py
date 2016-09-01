@@ -35,22 +35,22 @@ ALTDOMAIN_FIT_FDEN = 0  # FIT FDEN TO AN ALTERNATE DOMAIN THAN DEFINED BY
 # 1 => Gomopertz (typically loading)
 # 2 => Schnute  (typically creep)
 # 3 => lineaer equation (typically unloading)
-MODEL_TYPE = 3
+MODEL_TYPE = 1
 
 PLOT = 1  # SHOULD THE RESULTS BE PLOTTED175_09
-SAVEFIG = 0  # SHOULD THE PLOTS BE SAVED
-SAVECSV = 0  # SHOULD A .CSV OF THE RESULTS BE SAVED
-PLOT_FITDATA = 0  # SHOULD RESIDUALS OF THE FIT BE PRINTED
+SAVEFIG = 1  # SHOULD THE PLOTS BE SAVED
+SAVECSV = 1  # SHOULD A .CSV OF THE RESULTS BE SAVED
+PLOT_FITDATA = 1  # SHOULD RESIDUALS OF THE FIT BE PRINTED
 PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
-STAGE_ID = ''  # '_STAGE01' , FOR MULTI-STAGE TESTS
+STAGE_ID = '_STAGE01'  # '_STAGE01' , FOR MULTI-STAGE TESTS
 ADJUST_FOR_TEMP = 0  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
 
 # IF RESULTS FROM CS MODEL ARE TO BE PLOTTED ALSO, DEFINE PATH TO DATA
 PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
              'UNM_WP_HY_175_04_OUT' + '.csv'
 
-DUR_START = 1.015  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-DUR_END = 1.02  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_START = 0.0  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_END = 0.009  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
 FIT_START = 0.0025  # START FITTING
 FIT_END = 4.745  # END FITTING
 
@@ -69,12 +69,13 @@ print("Average Particle Size (mm): " + str(SIZE_MEAN))
 INTERP_INC = 10  # SECONDS, SIZE OF INTERPOLATION INCREMENT
 
 # COMPLETED TESTS
-FOLDER_DIR = 'UNM_WP_HY_175_01'
+# FOLDER_DIR = 'UNM_WP_HY_175_01'
 # FOLDER_DIR = 'UNM_WP_HY_175_03'
 # FOLDER_DIR = 'UNM_WP_HY_175_04'
 # FOLDER_DIR = 'UNM_WP_HY_175_09'
 # FOLDER_DIR = 'UNM_WP_HY_175_10'
 # FOLDER_DIR = 'UNM_WP_HY_175_11'
+FOLDER_DIR = 'UNM_WP_HY_175_12'
 
 # NOT COMPLETED TESTS
 # FOLDER_DIR = 'UNM_WP_HY_90_02'
@@ -517,7 +518,7 @@ if FIT_TYPE == 0:  # for loading or unloading
     AX1 = FIG1.add_subplot(311)
     AX1.set_title("Test: " + FOLDER_DIR, fontsize=18)
     LBL_FDEN = ["Fractional Density: Measure", "Fractional Denisty: Fit"]
-    LBL_PRES = ["Confining Pressure"]
+    LBL_PRES = ["Confining Pressure", "Pore Pressure"]
     AX1.plot(DUR_DAY_INTERP, FDEN_INTERP, linestyle='-', linewidth=1,
              marker='.', markersize=4, color='y', alpha=1)
     if RUN_FIT_FDEN == 1:
@@ -528,7 +529,10 @@ if FIT_TYPE == 0:  # for loading or unloading
 
     AX1A = AX1.twinx()
     AX1A.plot(DUR_DAY_INTERP, PCON_INTERP, linestyle='-',
-              linewidth=1, marker='s', markersize=4, color='r',
+              linewidth=0.5, marker='.', markersize=4, color='red',
+              alpha=1)
+    AX1A.plot(DUR_DAY_INTERP, PPOR_INTERP, linestyle='-',
+              linewidth=0.5, marker='.', markersize=4, color='green',
               alpha=1)
     AX1A.set_ylabel("Pressure (MPa)", fontsize=FS)
     AX1A.tick_params(labelsize=FS)

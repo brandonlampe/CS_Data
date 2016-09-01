@@ -1,38 +1,39 @@
-Analysis by Brandon Lampe, performed on: 2016/06/26 17:54:58
+Analysis by Brandon Lampe, performed on: 2016/09/01 07:39:52
 
 The following model was used to fit the fractional density:
 def gompertz(x, intercept, start, a, b, c):
     fden = intercept + a * exp(-exp(b - c * (x - start)))
     return fden
 
-Scaled Error Norm: 0.00528841980004
+Scaled Error Norm: 1.813750e-03
 
 Fit Report (from LMFIT):
 [[Model]]
     Model(_eval)
 [[Fit Statistics]]
-    # function evals   = 76
-    # data points      = 33
+    # function evals   = 78
+    # data points      = 29
     # variables        = 4
     chi-square         = 0.000
     reduced chi-square = 0.000
-    Akaike info crit   = -402.289
-    Bayesian info crit = -396.303
+    Akaike info crit   = -353.813
+    Bayesian info crit = -348.343
 [[Variables]]
-    a:           0.07853774 +/- 0.002457 (3.13%) (init= 5)
-    start:       0.1041205 (fixed)
-    c:           0.22191381 +/- 0.014322 (6.45%) (init= 1)
-    intercept:   0.83337045 +/- 0.000919 (0.11%) (init= 0.6)
-    b:           2.09477497 +/- 0.129295 (6.17%) (init= 1)
+    a:           0.07291399 +/- 0.002545 (3.49%) (init= 5)
+    start:       0.4769429 (fixed)
+    c:           0.24590448 +/- 0.017505 (7.12%) (init= 1)
+    intercept:   0.83366667 +/- 0.001002 (0.12%) (init= 0.6)
+    b:           2.20319280 +/- 0.152907 (6.94%) (init= 1)
 [[Correlations]] (unreported correlations are <  0.100)
-    C(c, b)                      =  0.956 
-    C(a, c)                      = -0.911 
-    C(a, b)                      = -0.862 
-    C(intercept, b)              =  0.667 
-    C(a, intercept)              = -0.661 
-    C(c, intercept)              =  0.520 
-
+    C(c, b)                      =  0.960 
+    C(a, c)                      = -0.908 
+    C(a, b)                      = -0.866 
+    C(intercept, b)              =  0.687 
+    C(a, intercept)              = -0.685 
+    C(c, intercept)              =  0.547 
 
 Model was fit to the following domain (x) -> Duration (days)
-Start, 2.0925
-End, 2.0963
+Start, 2.0927
+End, 2.096
+
+Raw data was interpolated every 10 sec.
