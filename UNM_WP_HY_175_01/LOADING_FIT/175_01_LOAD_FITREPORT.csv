@@ -1,39 +1,31 @@
-Analysis by Brandon Lampe, performed on: 2016/09/01 07:32:15
+Analysis by Brandon Lampe, performed on: 2016/09/01 11:31:19
 
 The following model was used to fit the fractional density:
-def gompertz(x, intercept, start, a, b, c):
-    fden = intercept + a * exp(-exp(b - c * (x - start)))
+def linear(x, slope, intercept):
+    fden = slope * x + intercept
     return fden
 
-Scaled Error Norm: 4.531130e-04
+Scaled Error Norm: 9.056445e-03
 
 Fit Report (from LMFIT):
 [[Model]]
     Model(_eval)
 [[Fit Statistics]]
-    # function evals   = 141
-    # data points      = 20
-    # variables        = 4
-    chi-square         = 0.000
+    # function evals   = 9
+    # data points      = 31
+    # variables        = 2
+    chi-square         = 0.003
     reduced chi-square = 0.000
-    Akaike info crit   = -295.512
-    Bayesian info crit = -291.529
+    Akaike info crit   = -285.598
+    Bayesian info crit = -282.730
 [[Variables]]
-    a:           0.03051372 +/- 0.001057 (3.46%) (init= 5)
-    start:       7.393549 (fixed)
-    c:           0.34672712 +/- 0.021789 (6.28%) (init= 1)
-    intercept:   0.87984133 +/- 0.000245 (0.03%) (init= 0.6)
-    b:           2.36086046 +/- 0.127057 (5.38%) (init= 1)
+    slope:       0.00085953 +/- 0.000254 (29.55%) (init=-1)
+    intercept:   0.88205003 +/- 0.003204 (0.36%) (init= 2)
 [[Correlations]] (unreported correlations are <  0.100)
-    C(c, b)                      =  0.967 
-    C(a, c)                      = -0.933 
-    C(a, b)                      = -0.867 
-    C(intercept, b)              =  0.593 
-    C(a, intercept)              = -0.531 
-    C(c, intercept)              =  0.469 
+    C(slope, intercept)          = -0.851 
 
 Model was fit to the following domain (x) -> Duration (days)
-Start, 0.001
-End, 0.0033
+Start, 0.0
+End, 0.0035
 
 Raw data was interpolated every 10 sec.
