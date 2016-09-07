@@ -35,7 +35,7 @@ ALTDOMAIN_FIT_FDEN = 0  # FIT FDEN TO AN ALTERNATE DOMAIN THAN DEFINED BY
 # 1 => Gomopertz (typically loading)
 # 2 => Schnute  (typically creep)
 # 3 => lineaer equation (typically unloading)
-MODEL_TYPE = 3
+MODEL_TYPE = 2
 
 PLOT = 1  # SHOULD THE RESULTS BE PLOTTED175_09
 SAVEFIG = 0  # SHOULD THE PLOTS BE SAVED
@@ -82,6 +82,8 @@ FOLDER_DIR = 'UNM_WP_HY_175_12'
 # FOLDER_DIR = 'UNM_WP_HY_90_03'
 # FOLDER_DIR = 'UNM_WP_HY_90_04'
 # FOLDER_DIR = 'UNM_WP_HY_90_08'
+FOLDER_DIR = 'UNM_WP_HY_250_03'
+
 STAGE_DIR = '/' + STAGE_ID[1:]
 
 # load tests data - .csv file that has been exported directly from .xlsx
@@ -166,7 +168,7 @@ if ALTDOMAIN_FIT_FDEN == 1:
     FIT_PCON_INTERP = FUNC_PCON_INTERP(FIT_DUR_DAY_INTERP)
 
 if ADJUST_FOR_TEMP == 1:  # MODIFICATION TO FDEN MEASUREMENT FOR DELTA TEMP.
-    MOD_FACT = 0.0016  # 1/DEGREE C
+    MOD_FACT = 0.0013  # 1/DEGREE C
     DELTA_TEMP = np.gradient(TEMP_INTERP)
     # plt.plot(DUR_DAY_INTERP, FDEN_INTERP, 'g-', label='Original')
     FDEN_INTERP = FDEN_INTERP + np.cumsum(DELTA_TEMP) * MOD_FACT

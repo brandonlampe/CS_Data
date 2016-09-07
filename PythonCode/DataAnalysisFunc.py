@@ -443,6 +443,13 @@ def column_idx(testname_str):
         col_pcon = 5  # confining pressure (psi)
         col_ppor = 0  # pore pressure - none for this test
         col_fden = 36  # calculated fractional density (Schuler Avg)
+    elif testname_str == '250_03':
+        col_time = 1  # Excel Time Column (days)
+        col_temp = 8  # confining fluid temperature (C)
+        col_pcon = 2  # confining pressure (psi)
+        col_ppor = 0  # pore pressure - none for this test
+        # col_fden = 28  # calculated fractional density (Schuler 01 only)
+        col_fden = 26  # calculated fractional density (dilatometer)
     else:
         sys.exit('-- Column IDX not defined for this test --')
     return col_time, col_temp, col_pcon, col_ppor, col_fden
