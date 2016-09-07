@@ -22,7 +22,7 @@ REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 # -1 => ALLOWS FOR PLOTTING & SAVING DATA WITH NO FIT
 #  0 => ALLOWS FOR PLOTTING DATA BUT NOT SAVING WITH NO FIT
 #  1 => PLOT AND SAVE DATA WITH CHOSEN FIT
-RUN_FIT_FDEN = 1  # SHOULD THE FIT TO FDEN BE CALCULATED
+RUN_FIT_FDEN = -1  # SHOULD THE FIT TO FDEN BE CALCULATED
 
 # 0 => VSTRN WILL BE FIT TO PRESSURE (LOADING)
 # 1 => FIT AGAINST TIME (CREEP)
@@ -49,8 +49,8 @@ ADJUST_FOR_TEMP = 0  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
 PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
              'UNM_WP_HY_175_04_OUT' + '.csv'
 
-DUR_START = 2.0  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-DUR_END = 3.1  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_START = .5  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_END = 7.5  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
 FIT_START = 0.0025  # START FITTING
 FIT_END = 4.745  # END FITTING
 
@@ -66,7 +66,7 @@ MEAN_PARTICLE_SIZE = SIZE_MEAN  # millimeters
 print("Average Particle Size (mm): " + str(SIZE_MEAN))
 
 # interpolation spacing
-INTERP_INC = 10  # SECONDS, SIZE OF INTERPOLATION INCREMENT
+INTERP_INC = 500  # SECONDS, SIZE OF INTERPOLATION INCREMENT
 
 # COMPLETED TESTS
 # FOLDER_DIR = 'UNM_WP_HY_175_01'
@@ -209,6 +209,7 @@ DELTA_SEC_INTERP = np.gradient(DUR_SEC_INTERP)
 VSTRN_RATE = DELTA_VSTRN / DELTA_SEC
 VSTRN_RATE_INTERP = DELTA_VSTRN_INTERP / DELTA_SEC_INTERP
 
+
 # CALCULATE COMPRESIBILITIES
 DELTA_PCON_INTERP = np.gradient(PCON_INTERP)
 DENISTY_INTERP = RHOIS * FDEN_INTERP
@@ -344,6 +345,8 @@ OUT_INTERP_DATA[:, 10] = PTER_INTERP
 OUT_INTERP_DATA[:, 11] = PSOL_INTERP
 OUT_INTERP_DATA[:, 12] = TEMP_INTERP
 
+print("Initial Strain Rate: " + str(VSTRN_RATE_FIT_INTERP[0]))
+print("Final Strain Rate: " + str(VSTRN_RATE_FIT_INTERP[-1]))
 ##################################
 # PLOTTING/EXPORTING BELOW
 ##################################
@@ -485,8 +488,8 @@ if FIT_TYPE == 1:
     # AXARR[2].plot(DUR_DAY_INTERP, PSOL_INTERP, linestyle='-',
     #               linewidth=1, marker='.', markersize=4,
     #               color='c', alpha=1)
-    AXARR[2].yaxis.set_major_formatter(FuncFormatter(
-        lambda x, p: format(int(x), ',')))
+    # AXARR[2].yaxis.set_major_formatter(FuncFormatter(
+    #     lambda x, p: format(int(x), ',')))
     AXARR[2].grid(True)
     AXARR[2].set_ylabel('Pressure (MPa)', fontsize=FS)
 
