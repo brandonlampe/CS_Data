@@ -12,11 +12,17 @@ sys.path.append(sys.path[0])
 import DataAnalysisFunc as daf
 REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 
+FIG1_NAME = 'CreepCompare_20MPa.pdf'
 SAVE_DIR = 'WP_HY_175'
-FOLDER_DIR_LIST = ['UNM_WP_HY_175_01', 'UNM_WP_HY_175_04',
-                   'UNM_WP_HY_175_09/STAGE01',
-                   'UNM_WP_HY_175_10/STAGE01',
-                   'UNM_WP_HY_175_11/STAGE01']
+FOLDER_DIR_LIST = ['UNM_WP_HY_175_01',
+                   'UNM_WP_HY_175_03',
+                   'UNM_WP_HY_175_04',
+                   # 'UNM_WP_HY_175_09/STAGE01',
+                   # 'UNM_WP_HY_175_10/STAGE01',
+                   # 'UNM_WP_HY_175_11/STAGE01',
+                   # 'UNM_WP_HY_175_13/STAGE02',
+                   # 'UNM_WP_HY_175_15/STAGE02',
+                   'UNM_WP_HY_175_16/STAGE01']
 
 # BUILD_SUMMARY = 1  # 0=> SUMMARY IS READ FROM FILE, 1=> SUMMARY IS BUILT
 SHOW_PLOT = 1
@@ -253,7 +259,6 @@ FIG1.tight_layout()
 
 
 if SAVE_PLOT == 1:
-    FIG1_NAME = 'CreepTestSummary_175.pdf'
     FIG1_PATH = os.path.join(OUT_DIR, FIG1_NAME)
     FIG1.savefig(FIG1_PATH, bbox_extra_artists=(LGD1,), bbox_inches='tight')
 

@@ -1,0 +1,40 @@
+Analysis by Brandon Lampe, performed on: 2016/10/11 07:17:33
+
+The following model was used to fit the fractional density:
+def schnute(x, start, end, a, b, c, d):
+    fden = (c**b + (d**b - c**b) * (1 - exp(-a*(x - start)))/(1 - exp(-a*(end - start))))**(1 / b)
+    return fden
+
+Scaled Error Norm: 9.644302e-05
+
+Fit Report (from LMFIT):
+[[Model]]
+    Model(_eval)
+[[Fit Statistics]]
+    # function evals   = 53
+    # data points      = 881
+    # variables        = 4
+    chi-square         = 0.000
+    reduced chi-square = 0.000
+    Akaike info crit   = -16280.426
+    Bayesian info crit = -16261.302
+[[Variables]]
+    a:       0.84089191 +/- 0.012147 (1.44%) (init= 0.1)
+    c:       0.89131920 +/- 7.79e-05 (0.01%) (init= 0.8464811)
+    b:       179.353716 +/- 0.382158 (0.21%) (init= 5)
+    end:     1.048 (fixed)
+    d:       0.92174980 +/- 7.31e-06 (0.00%) (init= 0.9679176)
+    start:   0.0293 (fixed)
+[[Correlations]] (unreported correlations are <  0.100)
+    C(a, b)                      = -0.900 
+    C(a, d)                      = -0.770 
+    C(b, d)                      =  0.498 
+    C(c, b)                      = -0.430 
+    C(a, c)                      =  0.300 
+    C(c, d)                      = -0.127 
+
+Model was fit to the following domain (x) -> Duration (days)
+Start, 0.0293
+End, 1.048
+
+Raw data was interpolated every 100 sec.

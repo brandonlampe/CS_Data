@@ -4,6 +4,7 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 import matplotlib.axis as ax
+import matplotlib.gridspec as gridspec
 from matplotlib import cm
 import Table
 
@@ -16,7 +17,9 @@ SAVE_DIR = 'WP_HY_175'
 FOLDER_DIR_LIST = ['UNM_WP_HY_175_09/STAGE01',
                    'UNM_WP_HY_175_10/STAGE01',
                    'UNM_WP_HY_175_11/STAGE01',
-                   'UNM_WP_HY_175_12/STAGE01']
+                   'UNM_WP_HY_175_12/STAGE01',
+                   'UNM_WP_HY_175_13/STAGE01',
+                   'UNM_WP_HY_250_03/STAGE01']
 # 'UNM_WP_HY_175_04',
 
 # BUILD_SUMMARY = 1  # 0=> SUMMARY IS READ FROM FILE, 1=> SUMMARY IS BUILT
@@ -24,9 +27,8 @@ SHOW_PLOT = 1
 SAVE_PLOT = 1
 
 OUT_DIR = os.path.join(REPO_DIR, 'SUMMARY', SAVE_DIR)
-# CREEP_PARM_LIST = []  # LIST OF dictS of - CREEP parameters
-TEST_LIST = []
-DATA_DICT = {}  # stores data from LOAD_OUT.csv
+TEST_LIST = []  # list, stores test names for plotting labels
+DATA_DICT = {}  # dictionary, stores data from LOAD_OUT.csv
 
 STEP_SIZE_SEC = np.array(([10, 100]))  # STEP SIZES (SECONS)
 
@@ -34,42 +36,29 @@ STEP_SIZE_SEC = np.array(([10, 100]))  # STEP SIZES (SECONS)
 for folder_dir in FOLDER_DIR_LIST:
     test_name = folder_dir[10:]  # + '_comp'
     dir_name = REPO_DIR + '/' + folder_dir
-
-    # print(dir_name)
-
     for root, fit_name, files in os.walk(dir_name, topdown=True):
-        # print(fit_name)
         if fit_name != []:
             FIT_IDX = fit_name.index('LOADING_FIT')
-            # print("FIT IDX: " + str(FIT_IDX))
-            # print(fit_name)
             fit_dir = os.path.join(root, fit_name[FIT_IDX])
-            # print(fit_dir)
             for filename in os.listdir(fit_dir):
-                print(test_name)
                 if test_name == '175_04':  # choose alternate file
                     if filename[-11:] == 'OUT_MOD.csv':
                         file_dir = os.path.join(fit_dir, filename)
-                        print(file_dir)
                         arr = np.loadtxt(fname=file_dir, dtype=float,
                                          delimiter=',', skiprows=3)
-                        # print(arr[:5,:])
-                        arr_name = test_name[:6]
+                        arr_name = test_name
                         TEST_LIST.append(arr_name)
                         DATA_DICT[arr_name] = arr
                         size = len(DATA_DICT[arr_name])
                         print(test_name)
                 elif filename[-7:] == 'OUT.csv':
                     file_dir = os.path.join(fit_dir, filename)
-                    print(file_dir)
                     arr = np.loadtxt(fname=file_dir, dtype=float,
                                      delimiter=',', skiprows=3)
-                    # print(arr[:5,:])
-                    arr_name = test_name[:6]
+                    arr_name = test_name
                     TEST_LIST.append(arr_name)
                     DATA_DICT[arr_name] = arr
                     size = len(DATA_DICT[arr_name])
-                    # print(size)
 
 COL_TIME = 0  # SEC
 COL_FDEN = 4  # FRACTIONAL DENSITY (MEASURED)
@@ -89,26 +78,28 @@ LINE_NUM = len(DATA_DICT)
 COLORMAP_SUB = np.linspace(LBND, UBND, LINE_NUM)
 COLORMAP = [cm.Set1(x) for x in COLORMAP_SUB]
 
-FIG1 = plt.figure(figsize=(13, 10))
+FIG1 = plt.figure(figsize=(13, 12))
+GS = gridspec.GridSpec(nrows=5, ncols=2)
+AX1 = FIG1.add_subplot(GS[0:2, 0])
+# AX2 = FIG1.add_subplot(GS[2, 0])
+AX3 = FIG1.add_subplot(GS[3:5, 0])
 
-AX1 = FIG1.add_subplot(421)
-AX2 = FIG1.add_subplot(425)
-AX3 = FIG1.add_subplot(427, sharex=AX2)
-
-AX4 = FIG1.add_subplot(422)
+AX4 = FIG1.add_subplot(GS[0, 1])
 AX4A = AX4.twinx()
-AX5 = FIG1.add_subplot(424, sharex=AX4)
+AX5 = FIG1.add_subplot(GS[1, 1], sharex=AX4)
 AX5A = AX5.twinx()
-AX6 = FIG1.add_subplot(426, sharex=AX4)
+AX6 = FIG1.add_subplot(GS[2, 1], sharex=AX4)
 AX6A = AX6.twinx()
-AX7 = FIG1.add_subplot(428, sharex=AX4)
+AX7 = FIG1.add_subplot(GS[3, 1], sharex=AX4)
 AX7A = AX7.twinx()
+AX8 = FIG1.add_subplot(GS[4, 1], sharex=AX4)
+AX8A = AX8.twinx()
 
 # CREATE LABELS FOR PLOTTING
-FOLDER_DIR_LIST_PLT = []
-for i in FOLDER_DIR_LIST:
-    FOLDER_DIR_LIST_PLT.append(i[10:])
-# print(FOLDER_DIR_LIST_PLT)
+# FOLDER_DIR_LIST_PLT = []
+# for i in FOLDER_DIR_LIST:
+#     FOLDER_DIR_LIST_PLT.append(i[10:])
+# # print(FOLDER_DIR_LIST_PLT)
 
 STRNRATE_LINES = []
 STRN_LINES = []
@@ -123,6 +114,8 @@ PDIF_LINES = []
 TEMP_LINES = []
 
 plot_single = 0
+
+print(TEST_LIST)
 for idx, color in enumerate(COLORMAP):
     FDEN0 = DATA_DICT[TEST_LIST[idx]][0, COL_FDEN]
     print("Initial Fractional Density: " + str(FDEN0))
@@ -151,13 +144,13 @@ for idx, color in enumerate(COLORMAP):
                                  linewidth=3, marker='None', markersize=6,
                                  markerfacecolor=color, fillstyle='none',
                                  alpha=1)
-    current_pcon = AX2.plot(PDIF, STRN, color=color,
-                            label=LBL_PCON,
-                            linestyle='-',
-                            linewidth=3, marker='None', markersize=4,
-                            markerfacecolor=color, fillstyle='bottom',
-                            alpha=1)
-    current_pdif = AX3.plot(PDIF, FDEN, color=color,
+    # current_pcon = AX2.plot(PCON, FDEN, color=color,
+    #                         label=LBL_PCON,
+    #                         linestyle='-',
+    #                         linewidth=3, marker='None', markersize=4,
+    #                         markerfacecolor=color, fillstyle='bottom',
+    #                         alpha=1)
+    current_pdif = AX3.plot(FDEN, PDIF, color=color,
                             label=LBL_PDIF,
                             linestyle='-',
                             linewidth=3, marker='None', markersize=4,
@@ -178,6 +171,7 @@ for idx, color in enumerate(COLORMAP):
                   alpha=1)
         AX4A.legend(LBL_PRES, frameon=1, framealpha=.85, loc=0, fontsize=FS,
                     numpoints=3)
+        AX4.set_title("Test: " + TEST_LIST[idx], fontsize=FS)
     elif plot_single == 1:
         AX5.plot(TIME, FDEN, color=color,
                  label=LBL_PCON,
@@ -193,6 +187,7 @@ for idx, color in enumerate(COLORMAP):
                   alpha=1)
         AX5A.legend(LBL_PRES, frameon=1, framealpha=.85, loc=0, fontsize=FS,
                     numpoints=3)
+        AX5.set_title("Test: " + TEST_LIST[idx], fontsize=FS)
     elif plot_single == 2:
         AX6.plot(TIME, FDEN, color=color,
                  label=LBL_PCON,
@@ -208,6 +203,7 @@ for idx, color in enumerate(COLORMAP):
                   alpha=1)
         AX6A.legend(LBL_PRES, frameon=1, framealpha=.85, loc=0, fontsize=FS,
                     numpoints=3)
+        AX6.set_title("Test: " + TEST_LIST[idx], fontsize=FS)
     elif plot_single == 3:
         AX7.plot(TIME, FDEN, color=color,
                  label=LBL_PCON,
@@ -223,19 +219,36 @@ for idx, color in enumerate(COLORMAP):
                   alpha=1)
         AX7A.legend(LBL_PRES, frameon=1, framealpha=.85, loc=0, fontsize=FS,
                     numpoints=3)
+        AX7.set_title("Test: " + TEST_LIST[idx], fontsize=FS)
+    elif plot_single == 4:
+        AX8.plot(TIME, FDEN, color=color,
+                 label=LBL_PCON,
+                 linestyle='-',
+                 linewidth=3, marker='None', markersize=4,
+                 markerfacecolor=color, fillstyle='bottom',
+                 alpha=1)
+        AX8A.plot(TIME, PRES_ARR.T,
+                  label=LBL_PRES,
+                  linestyle='--',
+                  linewidth=3, marker='None', markersize=4,
+                  markerfacecolor=color, fillstyle='bottom',
+                  alpha=1)
+        AX8A.legend(LBL_PRES, frameon=1, framealpha=.85, loc=0, fontsize=FS,
+                    numpoints=3)
+        AX8.set_title("Test: " + TEST_LIST[idx], fontsize=FS)
     plot_single = plot_single + 1
 
     FDEN_TIME_LINES.append(current_fden_time)
     # PRES_TIME_LINES.append(current_pres_time)
     # PPOR_TIME_LINES.append(current_ppor_time)
     # PCON_TIME_LINES.append(current_pcon_time)
-    PCON_LINES.append(current_pcon)
-    PDIF_LINES.append(current_pcon)
+    # PCON_LINES.append(current_pcon)
+    PDIF_LINES.append(current_pdif)
 
-XMIN, XMAX = AX2.get_xlim()  # get bounds on volumetric strain axis
-XMIN = XMIN
-XMAX = XMAX
-AX3.set_xlim(xmin=XMIN, xmax=XMAX)
+# XMIN, XMAX = AX2.get_xlim()  # get bounds on volumetric strain axis
+# XMIN = XMIN
+# XMAX = XMAX
+# AX3.set_xlim(xmin=XMIN, xmax=XMAX)
 
 #  CUSTOM TICK MARKS
 # TICK = np.arange(1, 1 + TEST_CNT, 1)
@@ -254,30 +267,45 @@ AX1.set_title("Loading Analysis: " + SAVE_DIR, fontsize=18)
 
 AX1.set_ylabel("Fractional Density", fontsize=FS)
 AX1.set_xlabel("Loading Time (sec)", fontsize=FS)
-AX2.set_ylabel(r'Volumetric Strain', fontsize=FS)
-# AX2.set_xlabel("Differential Pressure (MPa)", fontsize=FS)
-AX3.set_ylabel('Fractional Density', fontsize=FS)
-AX3.set_xlabel('Differential Pressure (MPa)', fontsize=FS)
+# AX2.set_ylabel(r'Fractional Density', fontsize=FS)
+# AX2.set_xlabel("Confining Pressure (MPa)", fontsize=FS)
+
+AX3.set_ylabel('Differential Pressure (MPa)', fontsize=FS)
+AX3.set_xlabel('Fractional Density', fontsize=FS)
+
+AX4.set_ylabel('Fractional Density', fontsize=FS)
 AX4A.set_ylabel('Pressure (MPa)', fontsize=FS)
+
+AX5.set_ylabel('Fractional Density', fontsize=FS)
 AX5A.set_ylabel('Pressure (MPa)', fontsize=FS)
+
+AX6.set_ylabel('Fractional Density', fontsize=FS)
 AX6A.set_ylabel('Pressure (MPa)', fontsize=FS)
+
+AX7.set_ylabel('Fractional Density', fontsize=FS)
 AX7A.set_ylabel('Pressure (MPa)', fontsize=FS)
-AX7.set_xlabel('Loading Time (sec)', fontsize=FS)
+
+AX8.set_ylabel('Fractional Density', fontsize=FS)
+AX8A.set_ylabel('Pressure (MPa)', fontsize=FS)
+AX8.set_xlabel('Loading Time (sec)', fontsize=FS)
+
+
 AX1.grid()
-AX2.grid()
+# AX2.grid()
 AX3.grid()
 AX4.grid()
 AX5.grid()
 AX6.grid()
 AX7.grid()
+AX8.grid()
 AX1.tick_params(labelsize=FS, pad=10)
-AX2.tick_params(labelsize=FS, pad=10)
+# AX2.tick_params(labelsize=FS, pad=10)
 AX3.tick_params(labelsize=FS, pad=10)
 
 HANDLES_1, LABELS_1 = AX1.get_legend_handles_labels()
 #  bbox_to_anchor(xmin, ymin, xmax, ymax) ro bounding box of legend
-LGD1 = AX1.legend(HANDLES_1, LABELS_1, bbox_to_anchor=(0.0, -1.0, 1.0, 0.5),
-                  loc='upper left', borderaxespad=1, ncol=3,
+LGD1 = AX1.legend(HANDLES_1, LABELS_1, bbox_to_anchor=(-0.05, -0.15, 1.0, 0.0),
+                  loc='upper left', borderaxespad=1, ncol=2,
                   fontsize=12)
 # HANDLES_3, LABELS_3 = AX3.get_legend_handles_labels()
 # LGD3 = AX3.legend(HANDLES_3, LABELS_3,

@@ -1,0 +1,31 @@
+Analysis by Brandon Lampe, performed on: 2016/09/08 17:47:43
+
+The following model was used to fit the fractional density:
+def linear(x, slope, intercept):
+    fden = slope * x + intercept
+    return fden
+
+Scaled Error Norm: 5.249339e-04
+
+Fit Report (from LMFIT):
+[[Model]]
+    Model(_eval)
+[[Fit Statistics]]
+    # function evals   = 9
+    # data points      = 260
+    # variables        = 2
+    chi-square         = 0.000
+    reduced chi-square = 0.000
+    Akaike info crit   = -3921.156
+    Bayesian info crit = -3914.035
+[[Variables]]
+    slope:       7.7479e-05 +/- 6.92e-06 (8.94%) (init=-1)
+    intercept:   0.89842757 +/- 0.000159 (0.02%) (init= 2)
+[[Correlations]] (unreported correlations are <  0.100)
+    C(slope, intercept)          = -0.979 
+
+Model was fit to the following domain (x) -> Duration (days)
+Start, 10.135
+End, 10.165
+
+Raw data was interpolated every 10 sec.

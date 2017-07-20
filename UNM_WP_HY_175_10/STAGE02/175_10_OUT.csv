@@ -1,0 +1,6 @@
+Analysis by Brandon Lampe, performed on: 2017/07/07 14:36:37
+Experimental results below begin at: 2016/07/30 13:08:55
+Duration (sec),Duration (day),Elapsed Time (sec),Elapsed Time (day),Interpolated Fractional Density,Fit to Fractional Density,Fit to Volume Strain,Fit to Volume Strain Rate (1/sec),Confining Pressure (MPa),Pore Pressure (MPa),Terzaghi Pressure (MPa),Solid Pressure (MPa),Temperature (C))
+1.371168e+05,1.587000e+00,0.000000e+00,0.000000e+00,9.121340e-01,9.121063e-01,-3.033533e-05,-6.537071e-06,2.988703e+01,1.010125e+01,1.978578e+01,3.179300e+01,1.696000e+02
+1.372464e+05,1.588500e+00,1.296000e+02,1.500000e-03,9.112786e-01,9.113339e-01,-8.775398e-04,-6.539843e-06,2.564741e+01,7.548859e+00,1.809855e+01,2.740947e+01,1.694364e+02
+1.373760e+05,1.590000e+00,2.592000e+02,3.000000e-03,9.105892e-01,9.105615e-01,-1.725463e-03,-6.542614e-06,2.124441e+01,7.410608e+00,1.383380e+01,2.260275e+01,1.692000e+02

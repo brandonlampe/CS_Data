@@ -1,0 +1,31 @@
+Analysis by Brandon Lampe, performed on: 2017/07/20 12:14:06
+
+The following model was used to fit the fractional density:
+def gompertz(x, intercept, start, a, b, c):
+    fden = intercept + a * exp(-exp(b - c * (x - start)))
+    return fden
+
+Scaled Error Norm: 3.552007e-04
+
+Fit Report (from LMFIT):
+[[Model]]
+    Model(_eval)
+[[Variables]]
+    a:           0.01791494 +/- 0.000309 (1.72%) (init= 5)
+    start:       0.0235 (fixed)
+    c:           1525.98826 +/- 56.81421 (3.72%) (init= 1)
+    intercept:   0.85731221 +/- 0.000245 (0.03%) (init= 0.6)
+    b:           1.69401656 +/- 0.085481 (5.05%) (init= 1)
+[[Correlations]] (unreported correlations are <  0.100)
+    C(c, b)                      =  0.929 
+    C(a, intercept)              = -0.916 
+    C(a, b)                      = -0.834 
+    C(intercept, b)              =  0.777 
+    C(a, c)                      = -0.760 
+    C(c, intercept)              =  0.592 
+
+Model was fit to the following domain (x) -> Duration (days)
+Start, 0.0235
+End, 0.028
+
+Raw data was interpolated every 10 sec.

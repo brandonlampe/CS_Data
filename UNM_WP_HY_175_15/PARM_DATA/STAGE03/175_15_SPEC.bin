@@ -1,0 +1,49 @@
+(dp0
+S'mean particle size'
+p1
+F3.2942353095487933
+sS'average temperature'
+p2
+cnumpy.core.multiarray
+scalar
+p3
+(cnumpy
+dtype
+p4
+(S'f8'
+p5
+I0
+I1
+tp6
+Rp7
+(I3
+S'<'
+p8
+NNNI-1
+I-1
+I0
+tp9
+bS'~\xebp\xc3]\xc7e@'
+p10
+tp11
+Rp12
+sS'percent added water by weight'
+p13
+F0.0
+sS'average pore pressure'
+p14
+g3
+(g7
+S'"\x9c\x05gK\x86-@'
+p15
+tp16
+Rp17
+sS'average confining pressure'
+p18
+g3
+(g7
+S'\xa1\x93\xac\xf1\xe8\xff3@'
+p19
+tp20
+Rp21
+s.

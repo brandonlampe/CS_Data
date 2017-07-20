@@ -1,40 +1,31 @@
-Analysis by Brandon Lampe, performed on: 2016/07/12 16:12:
+Analysis by Brandon Lampe, performed on: 2016/11/18 13:50:27
 
 The following model was used to fit the fractional density:
-def schnute(x, start, end, a, b, c, d):
-    fden = (c**b + (d**b - c**b) * (1 - exp(-a*(x - start)))/(1 - exp(-a*(end - start))))**(1 / b)
+def linear(x, slope, intercept):
+    fden = slope * x + intercept
     return fden
 
-Scaled Error Norm: 1.140090e-04
+Scaled Error Norm: 1.540644e-04
 
 Fit Report (from LMFIT):
 [[Model]]
     Model(_eval)
 [[Fit Statistics]]
-    # function evals   = 38
-    # data points      = 8018
-    # variables        = 4
+    # function evals   = 9
+    # data points      = 433
+    # variables        = 2
     chi-square         = 0.000
     reduced chi-square = 0.000
-    Akaike info crit   = -145582.587
-    Bayesian info crit = -145554.629
+    Akaike info crit   = -7595.864
+    Bayesian info crit = -7587.723
 [[Variables]]
-    a:       0.17378506 +/- 0.017529 (10.09%) (init= 0.1)
-    c:       0.89538931 +/- 8.16e-06 (0.00%) (init= 0.8501798)
-    b:       129.683022 +/- 1.091874 (0.84%) (init= 5)
-    end:     2.951 (fixed)
-    d:       0.90883603 +/- 3.79e-06 (0.00%) (init= 0.9544003)
-    start:   2.023 (fixed)
+    slope:       0.00864369 +/- 5.13e-05 (0.59%) (init=-1)
+    intercept:   0.88368166 +/- 0.000136 (0.02%) (init= 2)
 [[Correlations]] (unreported correlations are <  0.100)
-    C(a, b)                      = -0.986 
-    C(a, d)                      = -0.714 
-    C(c, b)                      = -0.677 
-    C(b, d)                      =  0.613 
-    C(a, c)                      =  0.590 
-    C(c, d)                      = -0.240 
+    C(slope, intercept)          = -0.999 
 
 Model was fit to the following domain (x) -> Duration (days)
-Start, 2.023
-End, 2.951
+Start, 2.4
+End, 2.9
 
-Raw data was interpolated every 10 sec.
+Raw data was interpolated every 100 sec.

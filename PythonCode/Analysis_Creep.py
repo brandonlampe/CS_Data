@@ -20,7 +20,7 @@ REPO_DIR = os.path.dirname(sys.path[0])  # PATH TO REPOSITORY DIRECTORY
 # CHOOSE ANALYSIS OPTIONS (INTEGER VALUES)
 ##################################
 # -1 => ALLOWS FOR PLOTTING & SAVING DATA WITH NO FIT
-#  0 => ALLOWS FOR PLOTTING DATA BUT NOT SAVING WITH NO FIT
+#  0 => ALLOWS FOR PLOTTING DATA - BUT MUST HAVE A FIT TO THE DATA
 #  1 => PLOT AND SAVE DATA WITH CHOSEN FIT
 RUN_FIT_FDEN = -1  # SHOULD THE FIT TO FDEN BE CALCULATED
 
@@ -38,19 +38,19 @@ ALTDOMAIN_FIT_FDEN = 0  # FIT FDEN TO AN ALTERNATE DOMAIN THAN DEFINED BY
 MODEL_TYPE = 2
 
 PLOT = 1  # SHOULD THE RESULTS BE PLOTTED175_09
-SAVEFIG = 0  # SHOULD THE PLOTS BE SAVED
+SAVEFIG = 1  # SHOULD THE PLOTS BE SAVED
 SAVECSV = 0  # SHOULD A .CSV OF THE RESULTS BE SAVED
 PLOT_FITDATA = 0  # SHOULD RESIDUALS OF THE FIT BE PRINTED
 PLOT_CSMOD = 0  # PLOT RESULTS FROM CS MODEL, MUST DEFINE FILE TO LOAD DATA
-STAGE_ID = '_STAGE01'  # '_STAGE01' , FOR MULTI-STAGE TESTS
-ADJUST_FOR_TEMP = 0  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
+STAGE_ID = '_ALL_DATA'  # '_STAGE01' , FOR MULTI-STAGE TESTS
+ADJUST_FOR_TEMP = 1  # MODIFY FDEN WHEN MEASURED WITH ISCO (TEMP. COMPENSATE)
 
 # IF RESULTS FROM CS MODEL ARE TO BE PLOTTED ALSO, DEFINE PATH TO DATA
 PATH_CSMOD = '/Users/Lampe/GrantNo456417/Modeling/constit/' + \
              'UNM_WP_HY_175_04_OUT' + '.csv'
 
-DUR_START = .5  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
-DUR_END = 7.5  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_START = 2.05  # START PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
+DUR_END = 10.  # END PLOTTING (days), IF NO ALTDOMAIN THEN FIT ALSO
 FIT_START = 0.0025  # START FITTING
 FIT_END = 4.745  # END FITTING
 
@@ -66,23 +66,26 @@ MEAN_PARTICLE_SIZE = SIZE_MEAN  # millimeters
 print("Average Particle Size (mm): " + str(SIZE_MEAN))
 
 # interpolation spacing
-INTERP_INC = 500  # SECONDS, SIZE OF INTERPOLATION INCREMENT
+INTERP_INC = 100  # SECONDS, SIZE OF INTERPOLATION INCREMENT
 
 # COMPLETED TESTS
 # FOLDER_DIR = 'UNM_WP_HY_175_01'
 # FOLDER_DIR = 'UNM_WP_HY_175_03'
-# FOLDER_DIR = 'UNM_WP_HY_175_04'
+FOLDER_DIR = 'UNM_WP_HY_175_04'
 # FOLDER_DIR = 'UNM_WP_HY_175_09'
 # FOLDER_DIR = 'UNM_WP_HY_175_10'
 # FOLDER_DIR = 'UNM_WP_HY_175_11'
-FOLDER_DIR = 'UNM_WP_HY_175_12'
+# FOLDER_DIR = 'UNM_WP_HY_175_12'
+# FOLDER_DIR = 'UNM_WP_HY_175_13'
+# FOLDER_DIR = 'UNM_WP_HY_175_15'
+# FOLDER_DIR = 'UNM_WP_HY_175_16'
 
 # NOT COMPLETED TESTS
 # FOLDER_DIR = 'UNM_WP_HY_90_02'
 # FOLDER_DIR = 'UNM_WP_HY_90_03'
 # FOLDER_DIR = 'UNM_WP_HY_90_04'
 # FOLDER_DIR = 'UNM_WP_HY_90_08'
-FOLDER_DIR = 'UNM_WP_HY_250_03'
+# FOLDER_DIR = 'UNM_WP_HY_250_03'
 
 STAGE_DIR = '/' + STAGE_ID[1:]
 
@@ -376,34 +379,6 @@ if PLOT_CSMOD == 1:
 ##################################
 FS = 14  # FONT SIZE FOR PLOTTING
 NUM_SUBPLOT = 3
-##################################
-# EXACT VOLUME STRAIN AND FRACTIONAL DENSITY RELATION
-##################################
-# lbl_strn = ['Volumetric Strain', 'Fractional Density', 'Lateral Strain']
-# AXARR[0].plot(DURATION_DAY, VSTRN, 'b-', lw=3)
-# # AXARR[0].plot(PLT_TIME, PLT_ASTRN, 'g-', lw=3)
-# # AXARR[0].plot(PLT_TIME, PLT_LSTRN, 'r-', lw=3)
-# AXARR[0].grid(True)
-# AXARR[0].set_ylabel("Strain", fontsize=FS)
-# # AXARR[0].set_ylim(ymin=0)
-# YMIN, YMAX = AXARR[0].get_ylim()
-# YMIN = FDEN0 / np.exp(-YMIN)
-# YMAX = FDEN0 / np.exp(-YMAX)
-# AX2A = AXARR[0].twinx()
-# AX2A.semilogy(DURATION_DAY, FDEN, 'r-', lw=2)
-# AX2A.yaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
-# AX2A.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
-# AX2A.set_ylabel("Fractional Density", fontsize=FS)
-# AX2A.tick_params(labelsize=FS)
-# AX2A.set_ylim(ymin=YMIN, ymax=YMAX)
-# AX2A.lines[0].remove()
-# # AXARR[0].legend(lbl_strn, frameon=1, framealpha=1, loc=0, fontsize=FS)
-# AXARR[0].tick_params(labelsize=FS)
-# AXARR[0].tick_params(labelsize=FS, pad=10)
-#################################
-# APPROXIMATE VOLUME STRAIN AND FRACTIONAL DENSITY
-# #################################
-
 # ######################################################################
 # PLOTTING FOR CREEP ONLY
 # ######################################################################

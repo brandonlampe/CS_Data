@@ -1,7 +1,7 @@
 (dp0
 S'mean particle size'
 p1
-F2.0
+F3.2942353095487933
 sS'average temperature'
 p2
 cnumpy.core.multiarray
@@ -23,7 +23,7 @@ NNNI-1
 I-1
 I0
 tp9
-bS'5\xe7vjdKe@'
+bS'\x10\xda?i:Me@'
 p10
 tp11
 Rp12
@@ -34,7 +34,7 @@ sS'average pore pressure'
 p14
 g3
 (g7
-S'\xe5\xd1=\xab\xc6\x9e\x1f@'
+S'D\xac\xb1$c\x9d\x1f@'
 p15
 tp16
 Rp17
@@ -42,7 +42,7 @@ sS'average confining pressure'
 p18
 g3
 (g7
-S'\xef\xdeT~\xcd\xfb=@'
+S'eo\xe7\xeaD\xfc=@'
 p19
 tp20
 Rp21
